@@ -1,0 +1,4 @@
+workspace.code-workspace
+.DS_Store
+backend/__pycache__/app.cpython-311.pyc
+backend/.venv
