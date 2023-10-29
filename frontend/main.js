@@ -1,3 +1,5 @@
+//npx vite to run
+
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
@@ -28,23 +30,50 @@ var highlighted = [];
 
 var selected;
 
-const userAction = async () => {
-  const response = await fetch('http://127.0.0.1:5000');
+var JWT = '';
+
+const getJWT = async (username, password) => {
+  const data = {
+    'username' : username,
+    'password' : password
+  };
+  const response = await fetch('http://127.0.0.1:5000/login', {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data)
+  });
   const myJson = await response.json(); //extract JSON from the http response
-  console.log(myJson);
+  const JWT = (myJson.token);
+  //console.log(JWT);
+  return JWT
+};
+
+document.getElementById("login").onclick = async() => {
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  //Sets value of Global JWT variable
+  JWT = await getJWT(username, password);
+  console.log('JWT from login button: ', JWT);
+  return JWT
+};
+
+//const JWT = await getJWT('harry', 'password');
+//console.log('JWT: ', JWT);
+
+const createGame = async () => {
+  const response = await fetch('http://127.0.0.1:5000/createGame');
+  const myJson = await response.json(); //extract JSON from the http response
+  console.log(myJson['map']);
+  return(myJson);
   // do something with myJson
 };
 
-//userAction();
-
-const createMap = async () => {
-  const response = await fetch('http://127.0.0.1:5000/createMap');
-  const myJson = await response.json(); //extract JSON from the http response
-  console.log(myJson);
-  // do something with myJson
-};
-
-createMap();
+const game = (await createGame());
+console.log(game['map']);
+//console.log(map);
+renderMap(game['map']);
 
 const sendGame = async () => {
   const myJson = JSON.stringify(tiles);
@@ -82,6 +111,7 @@ overlay.onmouseleave = function () {
 document.getElementById("createCity").onclick = function () {
   createCity(selected.a, selected.b, selected.c, "city");
 };
+
 function createCity(a, b, c, name) {
   const tile = scene.getObjectById(getTile(a, b, c));
   const material = new THREE.MeshBasicMaterial({ color: 0x996600 });
@@ -308,29 +338,59 @@ window.addEventListener("contextmenu", onRightClick);
 
 //Create map
 
-let k = 0;
-
-for (let i = 0; i < 50; i++) {
-  for (let j = 0; j < 50; j++) {
-    let material = new THREE.MeshBasicMaterial({ color: colorRota[i % 3] });
+function renderMap(map){
+  console.log(map);
+  for (let i = 0; i < Object.keys(map).length; i++){
+    let material = new THREE.MeshBasicMaterial({ color: map[i]['color'] });
     var hex = new THREE.Mesh(geometry, material);
-    hex.a = -i - j;
-    hex.b = 2 * j + i;
-    hex.c = -j;
-
-    //console.log('color rota: ' + colorRota[i]);
+    console.log('i: ', i);
+    console.log('map[i]: ', map[i]);
+    console.log('map[i][a]: ', map[i]['a']);
+    hex.a = map[i]['a'];
+    hex.b = map[i]['b'];
+    hex.c = map[i]['c'];
+    hex.i = map[i]['i'];
+    hex.j = map[i]['j'];
+    hex.k = map[i]['k'];
+    hex.color = map[i]['color'];
+    
 
     scene.add(hex);
     //console.log(hex);
     hex.startColor = hex.material.color.getHexString();
     //console.log('hex startColor: ' + hex.startColor);
-    hex.translateX(i * 4.3);
-    hex.translateZ(j * 15 + k);
+    hex.translateX(hex.i * 4.3);
+    hex.translateZ(hex.j * 15 + hex.k);
     tiles.push(hex);
   }
 
-  k += 7.5;
 };
+
+//Old create map
+
+// let k = 0;
+
+// for (let i = 0; i < 50; i++) {
+//   for (let j = 0; j < 50; j++) {
+//     let material = new THREE.MeshBasicMaterial({ color: colorRota[i % 3] });
+//     var hex = new THREE.Mesh(geometry, material);
+//     hex.a = -i - j;
+//     hex.b = 2 * j + i;
+//     hex.c = -j;
+
+//     //console.log('color rota: ' + colorRota[i]);
+
+    // scene.add(hex);
+    // //console.log(hex);
+    // hex.startColor = hex.material.color.getHexString();
+    // //console.log('hex startColor: ' + hex.startColor);
+    // hex.translateX(i * 4.3);
+    // hex.translateZ(j * 15 + k);
+    // tiles.push(hex);
+//   }
+
+//   k += 7.5;
+// };
 
 //sendGame();
 
@@ -354,11 +414,11 @@ function createUnit(a, b, c, name, unitType) {
   return unit;
 }
 
-const man = createUnit(0, 0, 0, "man", "settler");
-console.log("man id: " + man.id);
+//const man = createUnit(0, 0, 0, "man", "settler");
+//console.log("man id: " + man.id);
 
-const man2 = createUnit(-1, 1, 0, "man", "warrior");
-console.log("man2 id: " + man2.id);
+//const man2 = createUnit(-1, 1, 0, "man", "warrior");
+//console.log("man2 id: " + man2.id);
 
 //highlight([man2.id], 0x000000);
 
