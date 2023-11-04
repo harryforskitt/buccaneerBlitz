@@ -1,3 +1,6 @@
+#Use the command below to run in debug mode (live updates when you save changes)
+#flask app --debug
+
 #this looks funny but it makes sure vscode recognises both flask and Flask
 import flask
 from flask import Flask, request, jsonify, make_response
