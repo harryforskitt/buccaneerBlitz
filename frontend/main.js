@@ -1,6 +1,6 @@
 //Make sure flask app is running first so that fetch requests work
 //Use the command below to run:
-//npx vite
+//npx serve
 
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";

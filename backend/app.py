@@ -1,5 +1,8 @@
+#Before running the flask app, run the follwing to activate the virtual environemnt:
+#. .venv/bin/activate
+
 #Use the command below to run in debug mode (live updates when you save changes)
-#flask app --debug
+#flask run --debug
 
 #this looks funny but it makes sure vscode recognises both flask and Flask
 import flask
