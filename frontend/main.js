@@ -1,9 +1,12 @@
 //Make sure flask app is running first so that fetch requests work
 //Use the command below to run:
-//npx serve
+//npx vite
 
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+var JWT = localStorage.getItem('JWT');
+console.log(JWT);
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -31,8 +34,6 @@ const cities = [];
 var highlighted = [];
 
 var selected;
-
-var JWT = '';
 
 const getJWT = async (username, password) => {
   const data = {
@@ -66,8 +67,10 @@ document.getElementById("login").onclick = async() => {
 
 const createGame = async () => {
   const response = await fetch('http://127.0.0.1:5000/createGame');
+  console.log(response);
   const myJson = await response.json(); //extract JSON from the http response
-  console.log(myJson['map']);
+  console.log(myJson);
+  //console.log(myJson['map']);
   return(myJson);
   // do something with myJson
 };
@@ -345,9 +348,9 @@ function renderMap(map){
   for (let i = 0; i < Object.keys(map).length; i++){
     let material = new THREE.MeshBasicMaterial({ color: map[i]['color'] });
     var hex = new THREE.Mesh(geometry, material);
-    console.log('i: ', i);
-    console.log('map[i]: ', map[i]);
-    console.log('map[i][a]: ', map[i]['a']);
+    //console.log('i: ', i);
+    //console.log('map[i]: ', map[i]);
+    //console.log('map[i][a]: ', map[i]['a']);
     hex.a = map[i]['a'];
     hex.b = map[i]['b'];
     hex.c = map[i]['c'];

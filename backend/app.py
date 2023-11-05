@@ -19,23 +19,27 @@ cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['SECRET_KEY'] = 'thisisthesecretkey'
 
+users = []
+
+class User:
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+
+users.append(User('harry', 'password'))
+
 games = []
 
 #This will need to get game UUIDs from database, it's used when creating a new game to ensure that the game's ID is not duplicated
 gameIDs = []
 
-def createGameID():
-    id = len(games)
-    while True:
-        id += 1;
-        if id not in games:
-            return(id)
-
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        token = request.args.get('token') #http://1237.0.0.1:500/route?token=ahglhajkghdajkslghsajklg
-        print('token: ' + token)
+        print('verifying token')
+        print(request)
+        token = request.headers.get('Authorization') #http://1237.0.0.1:500/route?token=ahglhajkghdajkslghsajklg
+        print('token: ' + str(token))
 
         if not token:
             return jsonify({'message' : 'Token is missing!'}), 401
@@ -49,6 +53,30 @@ def token_required(f):
         return f(*args, **kwargs)
     
     return decorated
+
+#This function gets the data from the JWT
+def getTokenData(token):
+    data = jwt.decode(token, 'thisisthesecretkey', algorithms=["HS256"])
+    return(data)
+
+#This route returns the username from the JWT
+@app.route('/getUsername', methods=['GET'])
+@token_required
+def getUsername():
+    for i in range(0, len(users)):
+        if users[i].JWT == request.headers.get('Authorization'):
+            username = users[i].username
+            break
+    return jsonify({'username' : username})
+
+def createGameID():
+    id = len(games)
+    while True:
+        id += 1;
+        if id not in games:
+            return(id)
+
+
 
 
 @app.route('/', methods=['POST'])
@@ -80,7 +108,14 @@ def login():
     if username == 'harry' and password == 'password':
         token = jwt.encode({'user' : username , 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'], algorithm="HS256")
         print('returning token')
+        users[0].JWT = token
+        print(users[0].JWT)
+        # for i in range(0, len(users)):
+        #     if users[i].username == username:
+        #         users[i].JWT = user
+        #         break
         return jsonify({'token' : token})
+        
 
     return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login Required"'})
 
