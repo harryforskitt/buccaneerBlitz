@@ -16,13 +16,15 @@ mydb = client['society']
 mycol = mydb['users']
 
 #insert
-new_user = {"_id": "0", "username": "harry", "password": "password"}
+#new_user = {"_id": "0", "username": "harry", "password": "password"}
+#mycol.insert_one(new_user)
 
-mycol.insert_one(new_user)
+#read all
+# for i in mycol.find():
+#     print(i)
 
-#read
-for i in mycol.find():
-    print(i)
+#select
+print(mycol.find_one({"username": "harry"}, {"password": 1})['password'])
 
 # for prop, value in vars(client.options).items():
 #     print("Property: {}: Value: {} ".format(prop, value))
