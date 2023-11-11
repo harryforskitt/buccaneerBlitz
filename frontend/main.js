@@ -24,9 +24,6 @@ const geometry = new THREE.CylinderGeometry(5, 1, 1, 6);
 const geometry2 = new THREE.CylinderGeometry(2, 2, 2, 32);
 const cityGeometry = new THREE.TetrahedronGeometry(2, 2, 2, 32);
 
-let colorRota = [0xff0000, 0x00ff00, 0x0000ff, 0xff0000, 0x00ff00, 0x0000ff];
-let material2 = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-
 const tiles = [];
 const units = [];
 const cities = [];
@@ -248,8 +245,6 @@ function unhighlight(tiles) {
 const pointer = new THREE.Vector2();
 const raycaster = new THREE.Raycaster();
 
-var lastColor;
-var lastObject;
 var selected;
 
 const onMouseClick = (event) => {
@@ -370,34 +365,6 @@ function renderMap(map){
   }
 
 };
-
-//Old create map
-
-// let k = 0;
-
-// for (let i = 0; i < 50; i++) {
-//   for (let j = 0; j < 50; j++) {
-//     let material = new THREE.MeshBasicMaterial({ color: colorRota[i % 3] });
-//     var hex = new THREE.Mesh(geometry, material);
-//     hex.a = -i - j;
-//     hex.b = 2 * j + i;
-//     hex.c = -j;
-
-//     //console.log('color rota: ' + colorRota[i]);
-
-    // scene.add(hex);
-    // //console.log(hex);
-    // hex.startColor = hex.material.color.getHexString();
-    // //console.log('hex startColor: ' + hex.startColor);
-    // hex.translateX(i * 4.3);
-    // hex.translateZ(j * 15 + k);
-    // tiles.push(hex);
-//   }
-
-//   k += 7.5;
-// };
-
-//sendGame();
 
 function createUnit(a, b, c, name, unitType) {
   const tile = scene.getObjectById(getTile(a, b, c));
