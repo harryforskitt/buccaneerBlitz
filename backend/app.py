@@ -14,10 +14,18 @@ from jwt import decode
 import datetime
 from functools import wraps
 
+#Database dependencies:
+
+import os
+import sys
+import pymongo
+from dotenv import load_dotenv
+
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['SECRET_KEY'] = 'thisisthesecretkey'
+CONNECTION_STRING = os.environ.get("COSMOS_CONNECTION_STRING")
 
 users = []
 
@@ -102,11 +110,20 @@ def protected():
 @app.route('/login', methods=['POST'])
 def login():
     print('login called')
-    username = request.get_json().get('username')
-    password = request.get_json().get('password')
+    inputUsername = request.get_json().get('username')
+    inputPassword = request.get_json().get('password')
 
-    if username == 'harry' and password == 'password':
-        token = jwt.encode({'user' : username , 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'], algorithm="HS256")
+    client = pymongo.MongoClient(CONNECTION_STRING)
+
+    mydb = client['society']
+    mycol = mydb['users']
+
+    storedPassword = mycol.find_one({"username": inputUsername}, {"password": 1})['password']
+
+    client.close()
+
+    if inputPassword == storedPassword:
+        token = jwt.encode({'user' : inputUsername , 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'], algorithm="HS256")
         print('returning token')
         users[0].JWT = token
         print(users[0].JWT)
