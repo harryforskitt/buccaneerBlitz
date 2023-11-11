@@ -163,6 +163,14 @@ def create_game():
     #response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
+units = []
+
+def createUnit(tile, user, type):
+    unit = {}
+    unit.tile = tile
+    unit.user = user
+    unit.type = type
+    units.append(unit)
 
 #@app.route("/")
 #def hello_world():
