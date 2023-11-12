@@ -1,5 +1,6 @@
 #test connection to mongodb
 
+#Make sure COSMOS_CONNECTION_STRING  is set as a PERMANENT environment variable
 #When moving to production, will probably need to fix SSL cert issue with this: https://www.youtube.com/watch?v=dEBN1M609zk
 
 import os
@@ -13,18 +14,18 @@ CONNECTION_STRING = os.environ.get("COSMOS_CONNECTION_STRING")
 client = pymongo.MongoClient(CONNECTION_STRING)
 
 mydb = client['society']
-mycol = mydb['users']
+mycol = mydb['games']
 
 #insert
-#new_user = {"_id": "0", "username": "harry", "password": "password"}
-#mycol.insert_one(new_user)
+new_game = {"_id": "2", "name": "harry's second test game"}
+mycol.insert_one(new_game)
 
 #read all
 # for i in mycol.find():
 #     print(i)
 
 #select
-print(mycol.find_one({"username": "harry"}, {"password": 1})['password'])
+print(list(mycol.find({}, {})))
 
 # for prop, value in vars(client.options).items():
 #     print("Property: {}: Value: {} ".format(prop, value))

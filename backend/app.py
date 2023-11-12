@@ -77,6 +77,21 @@ def getUsername():
             break
     return jsonify({'username' : username})
 
+@app.route('/listGames', methods=['GET'])
+@token_required
+def listGames():
+    client = pymongo.MongoClient(CONNECTION_STRING)
+
+    mydb = client['society']
+    mycol = mydb['games']
+
+    games = list(mycol.find({}, {"name": 1}))
+
+    client.close()
+    # return jsonify({games})
+    print('games', games)
+    return jsonify(games)
+
 def createGameID():
     id = len(games)
     while True:
