@@ -31,8 +31,40 @@ const listGames = async () => {
       } catch (error) {
         console.error("Error: ", error);
       }
-      
-      
+};
+
+const createGame = async (name) => {
+  const data = {
+    'name' : name
+  };
+  try{
+    const response = await fetch('http://127.0.0.1:5000/createGame',{
+      method: "POST",
+      headers: {
+        "Authorization" : JWT,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data)
+    });
+  return(name)
+  } catch (error) {
+    console.error("Error: ", error);
+    return(null)
+  }
+
+};
+
+document.getElementById("createGame").onclick = async() => {
+  const game = await createGame('newname');
+  if (game != null){
+    const li = document.createElement('li');
+    //const game = document.createTextNode(result[i].name);
+    li.appendChild(document.createTextNode(game));
+    gamesList.appendChild(li);
+  }
+  else{
+    console.log('failed to make game')
+    }
 };
 
 listGames();

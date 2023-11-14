@@ -17,7 +17,7 @@ mydb = client['society']
 mycol = mydb['games']
 
 #insert
-new_game = {"_id": "2", "name": "harry's second test game"}
+new_game = {"_id": "4", "name": "harry's fourth test game"}
 mycol.insert_one(new_game)
 
 #read all

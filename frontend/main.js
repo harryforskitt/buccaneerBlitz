@@ -62,6 +62,8 @@ document.getElementById("login").onclick = async() => {
 //const JWT = await getJWT('harry', 'password');
 //console.log('JWT: ', JWT);
 
+//This endpoint has been changed in the API, so this needs to be updated to load a game instead (probably from id in local storage)of creating one
+//The create game and load game API endpoints should be updated to require authentication and have logic to check the user shoud have access to the game
 const createGame = async () => {
   const response = await fetch('http://127.0.0.1:5000/createGame');
   console.log(response);

@@ -21,6 +21,11 @@ import sys
 import pymongo
 from dotenv import load_dotenv
 
+#This is a helper functino to parse BSON from MongoDB to JSON
+from bson import json_util
+def parse_json(data):
+    return json.loads(json_util.dumps(data))
+
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
@@ -85,12 +90,14 @@ def listGames():
     mydb = client['society']
     mycol = mydb['games']
 
-    games = list(mycol.find({}, {"name": 1}))
+    games = list(parse_json(mycol.find({}, {"name": 1})))
+
+    print(games)
 
     client.close()
     # return jsonify({games})
     print('games', games)
-    return jsonify(games)
+    return games
 
 def createGameID():
     id = len(games)
@@ -160,9 +167,10 @@ def handle_post():
     print(data)
     return data
 
-@app.route('/createGame', methods=['GET'])
+@app.route('/createGame', methods=['POST'])
 @cross_origin()
 def create_game():
+    name = request.get_json().get('name')
     game = {}
     game['id'] = createGameID()
     colorRota = [0xff0000, 0x00ff00, 0x0000ff, 0xff0000, 0x00ff00, 0x0000ff]
@@ -193,6 +201,16 @@ def create_game():
     response = flask.jsonify(game)
     #Allow cross-origin requests
     #response.headers.add('Access-Control-Allow-Origin', '*')
+    CONNECTION_STRING = os.environ.get("COSMOS_CONNECTION_STRING")
+    client = pymongo.MongoClient(CONNECTION_STRING)
+
+    mydb = client['society']
+    mycol = mydb['games']
+
+    #insert
+    new_game = {"name": name}
+    mycol.insert_one(new_game)
+    client.close()
     return response
 
 units = []
