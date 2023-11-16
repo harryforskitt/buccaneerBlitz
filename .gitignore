@@ -3,3 +3,4 @@ workspace.code-workspace
 backend/__pycache__/app.cpython-311.pyc
 backend/.venv
 todo
+variables.env

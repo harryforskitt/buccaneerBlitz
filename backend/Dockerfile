@@ -1,3 +1,4 @@
+#run with --env-file variables.env
 FROM python:3-alpine3.16
 WORKDIR /app
 COPY app.py requirements.txt /app/
