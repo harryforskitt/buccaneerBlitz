@@ -1,0 +1,13 @@
+services:
+  backend:
+    build: ./backend
+    env_file:
+      - backend/variables.env
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build: ./frontend
+    command: npx vite --host 0.0.0.0
+    ports:
+     - "5137:5137"
