@@ -109,13 +109,13 @@ def createGameID():
 
 
 
-@app.route('/', methods=['POST'])
+@app.route('/', methods=['GET'])
 def yourMethod():
-    username = request.get_json().get('username')
-    password = request.get_json().get('password')
-    print(username)
-    print(password)
-    response = flask.jsonify({'some': 'data'})
+    # username = request.get_json().get('username')
+    # password = request.get_json().get('password')
+    # print(username)
+    # print(password)
+    response = flask.jsonify({'some': 'data2'})
     #Allow cross-origin requests
     #response.headers.add('Access-Control-Allow-Origin', '*')
     return response

@@ -1,3 +1,4 @@
+#run 'docker compose up --build' to show changes by rebuilding images
 services:
   backend:
     build: ./backend
@@ -8,6 +9,11 @@ services:
 
   frontend:
     build: ./frontend
-    #command: npx vite --host 0.0.0.0
+    volumes:
+      - type: bind
+        source: ./frontend
+        target: /app/src
+    command: "npx vite --host 0.0.0.0"
     ports:
      - "5173:5173"
+    
