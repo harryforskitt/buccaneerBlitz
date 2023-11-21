@@ -2,6 +2,10 @@
 services:
   backend:
     build: ./backend
+    volumes:
+      - type: bind
+        source: ./backend/src
+        target: /app/src
     env_file:
       - backend/variables.env
     ports:

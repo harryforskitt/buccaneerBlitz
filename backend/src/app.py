@@ -115,7 +115,7 @@ def yourMethod():
     # password = request.get_json().get('password')
     # print(username)
     # print(password)
-    response = flask.jsonify({'some': 'data2'})
+    response = flask.jsonify({'some': 'data5'})
     #Allow cross-origin requests
     #response.headers.add('Access-Control-Allow-Origin', '*')
     return response
