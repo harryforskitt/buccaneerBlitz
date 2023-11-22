@@ -6,6 +6,7 @@ services:
       - type: bind
         source: ./backend/src
         target: /app/src
+        read_only: true
     env_file:
       - backend/variables.env
     ports:
@@ -17,6 +18,7 @@ services:
       - type: bind
         source: ./frontend
         target: /app/src
+        read_only: true
     command: "npx vite --host 0.0.0.0"
     ports:
      - "5173:5173"
