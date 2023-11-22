@@ -19,11 +19,13 @@ const listGames = async () => {
       console.log(await result);
       console.log("Success: ", result);
       console.log('result length: ', result.length);
+      gamesList.innerHTML = "";
       for (let i = 0; i < result.length; i++) {
         const li = document.createElement('li');
         console.log(result[i].name);
         //const game = document.createTextNode(result[i].name);
-        li.appendChild(document.createTextNode(result[i].name));
+        console.log(result[i]._id['$oid']);
+        li.appendChild(document.createTextNode(result[i].name + ' id: ' + result[i]._id['$oid']));
         gamesList.appendChild(li);
 
       }
@@ -57,10 +59,11 @@ const createGame = async (name) => {
 document.getElementById("createGame").onclick = async() => {
   const game = await createGame('newname');
   if (game != null){
-    const li = document.createElement('li');
+    // const li = document.createElement('li');
     //const game = document.createTextNode(result[i].name);
-    li.appendChild(document.createTextNode(game));
-    gamesList.appendChild(li);
+    // li.appendChild(document.createTextNode(game));
+    // gamesList.appendChild(li);
+    listGames();
   }
   else{
     console.log('failed to make game')

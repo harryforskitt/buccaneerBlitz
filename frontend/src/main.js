@@ -8,6 +8,10 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 var JWT = localStorage.getItem('JWT');
 console.log(JWT);
 
+
+//change this to read from local storage to get the game the user selected
+const gameID = '655e23088fd8d14df52340bf'
+
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
   75,
@@ -58,6 +62,25 @@ document.getElementById("login").onclick = async() => {
   console.log('JWT from login button: ', JWT);
   return JWT
 };
+
+const getGame = async () => {
+  const response = await fetch('http://127.0.0.1:5000/getGame',{
+    method: "GET",
+    headers: {
+      "gameID" : gameID,
+      "Content-Type": "application/json",
+      "authorization": JWT
+    }
+  });
+  console.log(response);
+  const myJson = await response.json(); //extract JSON from the http response
+  console.log(myJson[0]);
+  //console.log(myJson['map']);
+  return(myJson);
+  // do something with myJson
+};
+
+console.log(getGame());
 
 //const JWT = await getJWT('harry', 'password');
 //console.log('JWT: ', JWT);
@@ -340,8 +363,8 @@ window.addEventListener("contextmenu", onRightClick);
 
 //Create map
 
-function renderMap(map){
-  console.log(map);
+function renderMap(map) {
+  console.log('map: ', map);
   for (let i = 0; i < Object.keys(map).length; i++){
     let material = new THREE.MeshBasicMaterial({ color: map[i]['color'] });
     var hex = new THREE.Mesh(geometry, material);
@@ -367,6 +390,15 @@ function renderMap(map){
   }
 
 };
+const game = getGame()
+  .then((finalResult) => {
+  console.log('res game: ', finalResult['0']['tiles']);
+  renderMap(finalResult['0']['tiles']);
+  console.log('render map called');
+})
+
+console.log('console log of await (getGame):', await(getGame));
+renderMap(getGame())
 
 function createUnit(a, b, c, name, unitType) {
   const tile = scene.getObjectById(getTile(a, b, c));

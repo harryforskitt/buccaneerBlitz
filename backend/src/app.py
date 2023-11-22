@@ -23,6 +23,7 @@ from dotenv import load_dotenv
 
 #This is a helper functino to parse BSON from MongoDB to JSON
 from bson import json_util
+from bson.objectid import ObjectId
 def parse_json(data):
     return json.loads(json_util.dumps(data))
 
@@ -90,9 +91,32 @@ def listGames():
     mydb = client['society']
     mycol = mydb['games']
 
-    games = list(parse_json(mycol.find({}, {"name": 1})))
+    games = list(parse_json(mycol.find({}, {"name": 1, "_id": 1})))
 
     print(games)
+
+    client.close()
+    # return jsonify({games})
+    print('games', games)
+    return games
+
+@app.route('/getGame', methods=['GET'])
+@token_required
+def getGame():
+    print('getting game')
+    gameID = request.headers.get('gameID')
+    print('gameID: ', gameID)
+
+    client = pymongo.MongoClient(CONNECTION_STRING)
+
+    mydb = client['society']
+    mycol = mydb['games']
+
+    games = list(parse_json(mycol.find({'_id': ObjectId(gameID)}, {})))
+
+    print('games', games)
+
+    print(type(games[0]['_id']))
 
     client.close()
     # return jsonify({games})
@@ -175,7 +199,7 @@ def create_game():
     game['id'] = createGameID()
     colorRota = [0xff0000, 0x00ff00, 0x0000ff, 0xff0000, 0x00ff00, 0x0000ff]
     tiles = {}
-    id = 0
+    id = "0"
     k = 0
     for i in range(0, 10):
         for j in range(0, 10):
@@ -193,7 +217,7 @@ def create_game():
             hex['color'] = colorRota[i % 3]
             print(hex)
             tiles[id] = hex
-            id+=1
+            id = str(int(id)+1)
         k += 7.5
     game['map'] = tiles
     games.append(game)
@@ -208,7 +232,7 @@ def create_game():
     mycol = mydb['games']
 
     #insert
-    new_game = {"name": name}
+    new_game = {"name": name, "tiles": tiles}
     mycol.insert_one(new_game)
     client.close()
     return response
