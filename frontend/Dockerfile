@@ -6,5 +6,6 @@ RUN npm install --save three
 RUN npm install --save-dev vite
 RUN npm i vite-plugin-restart -D
 WORKDIR /app/src
+#RUN mkdir /src
 EXPOSE 5173
 # RUN npx vite --host 0.0.0.0

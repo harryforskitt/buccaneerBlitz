@@ -16,10 +16,10 @@ services:
     build: ./frontend
     volumes:
       - type: bind
-        source: ./frontend
+        source: ./frontend/src
         target: /app/src
-        read_only: true
-    command: "npx vite --host 0.0.0.0"
+        # read_only: true
+    command: sh -c "rm -rf node_modules/.vite/deps && npx vite --host 0.0.0.0"
     ports:
      - "5173:5173"
     

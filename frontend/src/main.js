@@ -74,10 +74,10 @@ const createGame = async () => {
   // do something with myJson
 };
 
-const game = (await createGame());
-console.log(game['map']);
-//console.log(map);
-renderMap(game['map']);
+// const game = (await createGame());
+// console.log(game['map']);
+// //console.log(map);
+// renderMap(game['map']);
 
 const sendGame = async () => {
   const myJson = JSON.stringify(tiles);
