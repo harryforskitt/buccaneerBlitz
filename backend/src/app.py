@@ -68,6 +68,35 @@ def token_required(f):
     
     return decorated
 
+def user_match(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        print('verifying user')
+        print(request)
+        token = request.headers.get('Authorization')
+        tokenData = getTokenData(token)
+        username = (tokenData['user'])
+
+        gameID = request.headers.get('gameID')
+        client = pymongo.MongoClient(CONNECTION_STRING)
+
+        mydb = client['society']
+        mycol = mydb['games']
+
+        playersQuery = list(parse_json(mycol.find({'_id': ObjectId(gameID)}, {"players": 1})))
+        
+        client.close()
+
+        players = playersQuery[0]['players']
+        print (players)
+
+        if username not in players:
+            return jsonify({'message' : ('user ', username, ' is not in game ', gameID)}), 401
+
+        return f(*args, **kwargs)
+    
+    return decorated
+
 #This function gets the data from the JWT
 def getTokenData(token):
     data = jwt.decode(token, 'thisisthesecretkey', algorithms=["HS256"])
@@ -77,10 +106,9 @@ def getTokenData(token):
 @app.route('/getUsername', methods=['GET'])
 @token_required
 def getUsername():
-    for i in range(0, len(users)):
-        if users[i].JWT == request.headers.get('Authorization'):
-            username = users[i].username
-            break
+    token = request.headers.get('Authorization')
+    tokenData = getTokenData(token)
+    username = (tokenData['user'])
     return jsonify({'username' : username})
 
 @app.route('/listGames', methods=['GET'])
@@ -91,7 +119,7 @@ def listGames():
     mydb = client['society']
     mycol = mydb['games']
 
-    games = list(parse_json(mycol.find({}, {"name": 1, "_id": 1})))
+    games = list(parse_json(mycol.find({})))
 
     print(games)
 
@@ -102,9 +130,16 @@ def listGames():
 
 @app.route('/getGame', methods=['GET'])
 @token_required
+@user_match
 def getGame():
-    print('getting game')
+    token = request.headers.get('Authorization')
+    tokenData = getTokenData(token)
+    username = (tokenData['user'])
+    print("username: ", username)
     gameID = request.headers.get('gameID')
+
+    print('getting game')
+    
     print('gameID: ', gameID)
 
     client = pymongo.MongoClient(CONNECTION_STRING)
@@ -114,13 +149,13 @@ def getGame():
 
     games = list(parse_json(mycol.find({'_id': ObjectId(gameID)}, {})))
 
-    print('games', games)
+    # print('games', games)
 
     print(type(games[0]['_id']))
 
     client.close()
     # return jsonify({games})
-    print('games', games)
+    # print('games', games)
     return games
 
 def createGameID():
@@ -195,6 +230,8 @@ def handle_post():
 @cross_origin()
 def create_game():
     name = request.get_json().get('name')
+    players = request.get_json().get('players')
+    print('players: ', players)
     game = {}
     game['id'] = createGameID()
     colorRota = [0xff0000, 0x00ff00, 0x0000ff, 0xff0000, 0x00ff00, 0x0000ff]
@@ -203,7 +240,6 @@ def create_game():
     k = 0
     for i in range(0, 10):
         for j in range(0, 10):
-            #SET COLOR
             class Hex:
                 def toJSON(self):
                     return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
@@ -232,7 +268,7 @@ def create_game():
     mycol = mydb['games']
 
     #insert
-    new_game = {"name": name, "tiles": tiles}
+    new_game = {"name": name, "tiles": tiles, "players": players}
     mycol.insert_one(new_game)
     client.close()
     return response

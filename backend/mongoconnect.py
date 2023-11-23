@@ -11,18 +11,22 @@ from dotenv import load_dotenv
 
 load_dotenv()
 CONNECTION_STRING = os.environ.get("COSMOS_CONNECTION_STRING")
+#print("Connection string: ", CONNECTION_STRING)
 client = pymongo.MongoClient(CONNECTION_STRING)
 
 mydb = client['society']
 mycol = mydb['games']
 
 #insert
-new_game = {"_id": "4", "name": "harry's fourth test game"}
-mycol.insert_one(new_game)
+# new_game = {"_id": "4", "name": "harry's fourth test game"}
+# mycol.insert_one(new_game)
 
 #read all
 # for i in mycol.find():
 #     print(i)
+
+#Delete all documents in the collection
+mycol.delete_many({})
 
 #select
 print(list(mycol.find({}, {})))

@@ -16,16 +16,16 @@ const listGames = async () => {
   
       //const result = await response.json();
       const result = await response.json();
-      console.log(await result);
-      console.log("Success: ", result);
-      console.log('result length: ', result.length);
+      // console.log(await result);
+      // console.log("Success: ", result);
+      // console.log('result length: ', result.length);
       gamesList.innerHTML = "";
       for (let i = 0; i < result.length; i++) {
         const li = document.createElement('li');
-        console.log(result[i].name);
+        // console.log(result[i].name);
         //const game = document.createTextNode(result[i].name);
-        console.log(result[i]._id['$oid']);
-        li.appendChild(document.createTextNode(result[i].name + ' id: ' + result[i]._id['$oid']));
+        // console.log(result[i].players);
+        li.appendChild(document.createTextNode(result[i].name + ' id: ' + result[i]._id['$oid'] + ' players: ' + result[i].players));
         gamesList.appendChild(li);
 
       }
@@ -35,9 +35,10 @@ const listGames = async () => {
       }
 };
 
-const createGame = async (name) => {
+const createGame = async (name, players) => {
   const data = {
-    'name' : name
+    'name': name,
+    'players': players
   };
   try{
     const response = await fetch('http://127.0.0.1:5000/createGame',{
@@ -57,7 +58,17 @@ const createGame = async (name) => {
 };
 
 document.getElementById("createGame").onclick = async() => {
-  const game = await createGame('newname');
+  const players = []
+  const playersInput = document.getElementById("players").getElementsByTagName('input');
+  const name = document.getElementById("gameName").value;
+  for (let i = 0; i < playersInput.length; i++) {
+    console.log('player ', i)
+    console.log(playersInput[i].value);
+    players.push(playersInput[i].value);
+  };
+  //console.log(players);
+  
+  const game = await createGame(name, players);
   if (game != null){
     // const li = document.createElement('li');
     //const game = document.createTextNode(result[i].name);

@@ -10,7 +10,7 @@ console.log(JWT);
 
 
 //change this to read from local storage to get the game the user selected
-const gameID = '655e23088fd8d14df52340bf'
+const gameID = '655f41764c063e738be5bd02';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
