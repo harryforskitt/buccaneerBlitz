@@ -211,7 +211,7 @@ def create_game():
     print('players: ', players)
     game = {}
     tiles = {}
-    units = {}
+    units = []
     colorRota = [0xff0000, 0x00ff00, 0x0000ff, 0xff0000, 0x00ff00, 0x0000ff]
     id = "0"
     k = 0
@@ -237,7 +237,8 @@ def create_game():
 
     for i in range(0, len(startPositions)):
         unit = createUnit(startPositions[i], players[i], 'scout')
-        units[str(i)] = unit
+        # units[ObjectId()] = unit
+        units.append(unit)
 
     print('units: ', units)
 
@@ -273,21 +274,41 @@ def createUnit(tile, player, type):
 def moveUnit():
     print(request)
     json = request.get_json()
-    unitID = json.get('unitID')
+    unitID = json.get('unitID')['$oid']
+    print('unit id from json: ', unitID)
     tile = json.get('tile')
     client = pymongo.MongoClient(CONNECTION_STRING)
 
     mydb = client['society']
     mycol = mydb['games']
-    print('tyring to find')
-    unitID = ObjectId(unitID)
-    print('unitID: ', unitID)
-    unit = mycol.find_one({"_id": ObjectId(unitID)}, {})
-    print('found')
+    print('trying to find')
+    print(unitID)
 
+    print('unitID: ', unitID)
+    # unit = mycol.find_one({'$elemMatch': { "units._id": ObjectId("655fbf67c57836915cf8acbb")}, "units.player":  "harry"},{"units": 1})
+    # unit = mycol.find_one({"tags": ObjectId("655f7b39b8ca04514dd5c427")},{})
+    # unit = mycol.find({},{"units"})
+
+    unit = mycol.aggregate([{"$match": {"units._id": ObjectId("655fbf67c57836915cf8acbb")}},
+        {"$project": {
+            "units": {
+                "$filter": {
+                    "input": "$units",
+                    "as": "unit",
+                    "cond": {"$eq": ["$$unit._id", ObjectId("655fbf67c57836915cf8acbb")]}
+                }
+            }
+        }}
+        ])
+
+    print('found')
+    for doc in unit:
+        print(doc)
+        break
     client.close()
     print('unit: ', unit)
-    return()
+
+    return({"some": "data"})
 
 #@app.route("/")
 #def hello_world():

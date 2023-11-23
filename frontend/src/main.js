@@ -12,7 +12,7 @@ console.log(JWT);
 //game with harry in: 655f41764c063e738be5bd02
 
 //change this to read from local storage to get the game the user selected
-const gameID = '655f7b39b8ca04514dd5c42c';
+const gameID = '655fbf67c57836915cf8acc0';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
