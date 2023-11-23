@@ -169,7 +169,7 @@ def login():
     client.close()
 
     if inputPassword == storedPassword:
-        token = jwt.encode({'user' : inputUsername , 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'], algorithm="HS256")
+        token = jwt.encode({'user' : inputUsername , 'exp' : datetime.datetime.utcnow() + datetime.timedelta(hours=8)}, app.config['SECRET_KEY'], algorithm="HS256")
         print('returning token')
         users[0].JWT = token
         print(users[0].JWT)
