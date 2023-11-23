@@ -21,6 +21,8 @@ import sys
 import pymongo
 from dotenv import load_dotenv
 
+import random
+
 #This is a helper functino to parse BSON from MongoDB to JSON
 from bson import json_util
 from bson.objectid import ObjectId
@@ -32,20 +34,6 @@ cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['SECRET_KEY'] = 'thisisthesecretkey'
 CONNECTION_STRING = os.environ.get("COSMOS_CONNECTION_STRING")
-
-users = []
-
-class User:
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
-
-users.append(User('harry', 'password'))
-
-games = []
-
-#This will need to get game UUIDs from database, it's used when creating a new game to ensure that the game's ID is not duplicated
-gameIDs = []
 
 def token_required(f):
     @wraps(f)
@@ -91,7 +79,8 @@ def user_match(f):
         print (players)
 
         if username not in players:
-            return jsonify({'message' : ('user ', username, ' is not in game ', gameID)}), 401
+            message = str('user ' + username + ' is not in game ' + gameID)
+            return jsonify({'message' : message}), 401
 
         return f(*args, **kwargs)
     
@@ -121,11 +110,11 @@ def listGames():
 
     games = list(parse_json(mycol.find({})))
 
-    print(games)
+    # print(games)
 
     client.close()
     # return jsonify({games})
-    print('games', games)
+    # print('games', games)
     return games
 
 @app.route('/getGame', methods=['GET'])
@@ -151,22 +140,12 @@ def getGame():
 
     # print('games', games)
 
-    print(type(games[0]['_id']))
+    # print(type(games[0]['_id']))
 
     client.close()
     # return jsonify({games})
     # print('games', games)
     return games
-
-def createGameID():
-    id = len(games)
-    while True:
-        id += 1;
-        if id not in games:
-            return(id)
-
-
-
 
 @app.route('/', methods=['GET'])
 def yourMethod():
@@ -206,8 +185,6 @@ def login():
     if inputPassword == storedPassword:
         token = jwt.encode({'user' : inputUsername , 'exp' : datetime.datetime.utcnow() + datetime.timedelta(hours=8)}, app.config['SECRET_KEY'], algorithm="HS256")
         print('returning token')
-        users[0].JWT = token
-        print(users[0].JWT)
         # for i in range(0, len(users)):
         #     if users[i].username == username:
         #         users[i].JWT = user
@@ -233,16 +210,15 @@ def create_game():
     players = request.get_json().get('players')
     print('players: ', players)
     game = {}
-    game['id'] = createGameID()
-    colorRota = [0xff0000, 0x00ff00, 0x0000ff, 0xff0000, 0x00ff00, 0x0000ff]
     tiles = {}
+    units = {}
+    colorRota = [0xff0000, 0x00ff00, 0x0000ff, 0xff0000, 0x00ff00, 0x0000ff]
     id = "0"
     k = 0
+
     for i in range(0, 10):
         for j in range(0, 10):
-            class Hex:
-                def toJSON(self):
-                    return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+            
             hex = {}
             hex['a'] = -i-j
             hex['b'] = 2 * j + i
@@ -251,16 +227,23 @@ def create_game():
             hex['j'] = j
             hex['k'] = k
             hex['color'] = colorRota[i % 3]
-            print(hex)
+            # print(hex)
             tiles[id] = hex
             id = str(int(id)+1)
         k += 7.5
-    game['map'] = tiles
-    games.append(game)
-    print(game)
-    response = flask.jsonify(game)
-    #Allow cross-origin requests
-    #response.headers.add('Access-Control-Allow-Origin', '*')
+
+    startPositions = random.sample(range(0, len(tiles)), len(players))
+    print("start positions: ", startPositions)
+
+    for i in range(0, len(startPositions)):
+        unit = createUnit(startPositions[i], players[i], 'scout')
+        units[str(i)] = unit
+
+    print('units: ', units)
+
+    # print('tiles: ', tiles)
+
+    #print(game)
     CONNECTION_STRING = os.environ.get("COSMOS_CONNECTION_STRING")
     client = pymongo.MongoClient(CONNECTION_STRING)
 
@@ -268,19 +251,43 @@ def create_game():
     mycol = mydb['games']
 
     #insert
-    new_game = {"name": name, "tiles": tiles, "players": players}
+    new_game = {"name": name, "tiles": tiles, "players": players, "units": units}
     mycol.insert_one(new_game)
+
     client.close()
+    print('new game units: ', new_game['units'])
+    response = flask.jsonify(game)
     return response
 
-units = []
-
-def createUnit(tile, user, type):
+def createUnit(tile, player, type):
     unit = {}
-    unit.tile = tile
-    unit.user = user
-    unit.type = type
-    units.append(unit)
+    unit['tile'] = tile
+    unit['player'] = player
+    unit['type'] = type
+    unit['_id'] = ObjectId()
+    return(unit)
+
+@app.route('/moveUnit', methods=['POST'])
+@token_required
+@user_match
+def moveUnit():
+    print(request)
+    json = request.get_json()
+    unitID = json.get('unitID')
+    tile = json.get('tile')
+    client = pymongo.MongoClient(CONNECTION_STRING)
+
+    mydb = client['society']
+    mycol = mydb['games']
+    print('tyring to find')
+    unitID = ObjectId(unitID)
+    print('unitID: ', unitID)
+    unit = mycol.find_one({"_id": ObjectId(unitID)}, {})
+    print('found')
+
+    client.close()
+    print('unit: ', unit)
+    return()
 
 #@app.route("/")
 #def hello_world():

@@ -8,9 +8,11 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 var JWT = localStorage.getItem('JWT');
 console.log(JWT);
 
+//game without harry in: 655f41cb4c063e738be5bd16
+//game with harry in: 655f41764c063e738be5bd02
 
 //change this to read from local storage to get the game the user selected
-const gameID = '655f41764c063e738be5bd02';
+const gameID = '655f7b39b8ca04514dd5c42c';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -54,13 +56,37 @@ const getJWT = async (username, password) => {
   return JWT
 };
 
-document.getElementById("login").onclick = async() => {
-  const username = document.getElementById('username').value;
-  const password = document.getElementById('password').value;
-  //Sets value of Global JWT variable
-  JWT = await getJWT(username, password);
-  console.log('JWT from login button: ', JWT);
-  return JWT
+// document.getElementById("login").onclick = async() => {
+//   const username = document.getElementById('username').value;
+//   const password = document.getElementById('password').value;
+//   //Sets value of Global JWT variable
+//   JWT = await getJWT(username, password);
+//   console.log('JWT from login button: ', JWT);
+//   return JWT
+// };
+
+document.getElementById("moveUnit").onclick = async() => {
+  console.log('unit to move: ', units[0]);
+  const unitID = units[0]['_id'];
+  console.log('unitID to move: ', unitID);
+  const data = {
+    "unitID": unitID,
+    "tile": "0"
+  };
+  const response = await fetch('http://127.0.0.1:5000/moveUnit',{
+    method: "POST",
+    headers: {
+      "gameID" : gameID,
+      "Content-Type": "application/json",
+      "authorization": JWT,
+    },
+    body: JSON.stringify(data)
+  }).then((res) => {
+    if (res.status === 400) {
+      throw new Error('your error message here');
+  }
+  })
+  return response;
 };
 
 const getGame = async () => {
@@ -72,8 +98,8 @@ const getGame = async () => {
       "authorization": JWT
     }
   });
-  console.log(response);
-  const myJson = await response.json(); //extract JSON from the http response
+  const myJson = await response.json();
+  console.log("myJson: ", myJson);
   console.log(myJson[0]);
   //console.log(myJson['map']);
   return(myJson);
@@ -289,7 +315,8 @@ const onMouseClick = (event) => {
     let toHighlight = [selected.id];
 
     //change this to check that the type of the object is a unit
-    if (selected.name == "man") {
+    console.log('selected type: ', selected.type)
+    if (selected.objectType == "unit") {
       //console.log('toHighlight:');
       //console.log(toHighlight);
       console.log("toHighlight: ");
@@ -329,7 +356,7 @@ const onRightClick = (event) => {
 
   if (intersects.length > 0) {
     //console.log('man: ' + man.name);
-    if (selected.name == "man") {
+    if (selected.objectType == "unit") {
       //Get position of right clicked tile
       var targetPosition = intersects[0].object.position;
 
@@ -387,25 +414,43 @@ function renderMap(map) {
     hex.translateX(hex.i * 4.3);
     hex.translateZ(hex.j * 15 + hex.k);
     tiles.push(hex);
-  }
+  };
 
 };
-const game = getGame()
+
+const renderGame = async () => {
+  const game = getGame()
   .then((finalResult) => {
   console.log('res game: ', finalResult['0']['tiles']);
   renderMap(finalResult['0']['tiles']);
   console.log('render map called');
-})
+  renderUnits(finalResult['0']['units']);
+  });
+};
+
+function renderUnits(units){
+  console.log('units: ', units);
+  for (let i = 0; i < Object.keys(units).length; i++){
+    const unit = units[i]
+    const tileNumber = unit['tile']
+    console.log("unit tile: ", tileNumber);
+    const tile = tiles[tileNumber];
+    console.log('tile: ', tile);
+    createUnit(tile.a, tile.b, tile.c, unit.name, unit.player, unit._id)
+  };
+};
 
 console.log('console log of await (getGame):', await(getGame));
-renderMap(getGame())
+renderGame();
 
-function createUnit(a, b, c, name, unitType) {
+function createUnit(a, b, c, name, player, id) {
   const tile = scene.getObjectById(getTile(a, b, c));
   const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
   const unit = new THREE.Mesh(geometry2, material);
+  unit._id = id;
+  unit.objectType = 'unit';
   unit.name = name;
-  unit.unitType = unitType;
+  unit.player = player;
   scene.add(unit);
   unit.translateY(1);
   console.log(tile.position.x);
