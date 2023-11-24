@@ -213,13 +213,14 @@ def create_game():
     tiles = {}
     units = []
     colorRota = [0xff0000, 0x00ff00, 0x0000ff, 0xff0000, 0x00ff00, 0x0000ff]
-    id = "0"
+    _id = "0"
     k = 0
 
     for i in range(0, 10):
         for j in range(0, 10):
             
             hex = {}
+            hex['_id'] = _id
             hex['a'] = -i-j
             hex['b'] = 2 * j + i
             hex['c'] = -j
@@ -228,8 +229,8 @@ def create_game():
             hex['k'] = k
             hex['color'] = colorRota[i % 3]
             # print(hex)
-            tiles[id] = hex
-            id = str(int(id)+1)
+            tiles[_id] = hex
+            _id = str(int(_id)+1)
         k += 7.5
 
     startPositions = random.sample(range(0, len(tiles)), len(players))
@@ -277,6 +278,7 @@ def moveUnit():
     unitID = json.get('unitID')['$oid']
     print('unit id from json: ', unitID)
     tile = json.get('tile')
+    print('tile to move to: ', tile)
     client = pymongo.MongoClient(CONNECTION_STRING)
 
     mydb = client['society']
@@ -289,25 +291,26 @@ def moveUnit():
     # unit = mycol.find_one({"tags": ObjectId("655f7b39b8ca04514dd5c427")},{})
     # unit = mycol.find({},{"units"})
 
-    unit = mycol.aggregate([{"$match": {"units._id": ObjectId("655fbf67c57836915cf8acbb")}},
-        {"$project": {
-            "units": {
-                "$filter": {
-                    "input": "$units",
-                    "as": "unit",
-                    "cond": {"$eq": ["$$unit._id", ObjectId("655fbf67c57836915cf8acbb")]}
-                }
-            }
-        }}
-        ])
+    # unitCursor = mycol.aggregate([{"$match": {"units._id": ObjectId(unitID)}},
+    #     {"$project": {
+    #         "units": {
+    #             "$filter": {
+    #                 "input": "$units",
+    #                 "as": "unit",
+    #                 "cond": {"$eq": ["$$unit._id", ObjectId("655fbf67c57836915cf8acbb")]}
+    #             }
+    #         }
+    #     }}
+    #     ])
+    # print('found')
+    # for i in unitCursor:
+    #     unit = i
+    #     break
+    mycol.update_one({ "units._id": ObjectId(unitID) }, { "$set": {"units.$.tile":  tile}})
 
-    print('found')
-    for doc in unit:
-        print(doc)
-        break
+    
     client.close()
-    print('unit: ', unit)
-
+    # print(unit)
     return({"some": "data"})
 
 #@app.route("/")

@@ -8,6 +8,7 @@ import sys
 
 import pymongo
 from dotenv import load_dotenv
+from bson.objectid import ObjectId
 
 load_dotenv()
 CONNECTION_STRING = os.environ.get("COSMOS_CONNECTION_STRING")
@@ -26,10 +27,30 @@ mycol = mydb['games']
 #     print(i)
 
 #Delete all documents in the collection
-mycol.delete_many({})
+#mycol.delete_many({})
+
+# select unit by ID
+# unitCursor = mycol.aggregate([{"$match": {"units._id": ObjectId("655fbf67c57836915cf8acbb")}},
+#         {"$project": {
+#             "units": {
+#                 "$filter": {
+#                     "input": "$units",
+#                     "as": "unit",
+#                     "cond": {"$eq": ["$$unit._id", ObjectId("655fbf67c57836915cf8acbb")]}
+#                 }
+#             }
+#         }}
+#         ])
+# for i in unitCursor:
+#     unit = i
+#     break
+# print(unit)
 
 #select
-print(list(mycol.find({}, {})))
+# print(list(mycol.find({}, {})))
+
+# udpate unit tile
+mycol.update_one({ "units._id": ObjectId("6560aded82be688c9ea474d8") }, { "$set": {"units.$.tile":  "1"}})
 
 # for prop, value in vars(client.options).items():
 #     print("Property: {}: Value: {} ".format(prop, value))
