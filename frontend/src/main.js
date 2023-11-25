@@ -14,7 +14,7 @@ console.log(JWT);
 //game with harry in: 655f41764c063e738be5bd02
 
 //change this to read from local storage to get the game the user selected
-const gameID = '6560aded82be688c9ea474dd';
+const gameID = '6562665f9a10e4d02ec58ec4';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -457,6 +457,7 @@ function renderMap(map) {
     //console.log('map[i]: ', map[i]);
     //console.log('map[i][a]: ', map[i]['a']);
 
+    //should do this programatticaly instead of setting each value
     hex._id = map[i]['_id'];
     hex.a = map[i]['a'];
     hex.b = map[i]['b'];
@@ -465,6 +466,7 @@ function renderMap(map) {
     hex.j = map[i]['j'];
     hex.k = map[i]['k'];
     hex.color = map[i]['color'];
+    hex.startColor = map[i]['startColor'];
     
 
     scene.add(hex);

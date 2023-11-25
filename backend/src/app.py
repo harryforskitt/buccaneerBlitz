@@ -228,6 +228,7 @@ def create_game():
             hex['j'] = j
             hex['k'] = k
             hex['color'] = colorRota[i % 3]
+            hex['startColor'] = colorRota[i % 3]
             # print(hex)
             tiles[_id] = hex
             _id = str(int(_id)+1)
