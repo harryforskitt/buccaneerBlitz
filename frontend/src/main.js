@@ -285,23 +285,11 @@ const getMouseIntersects = (event) => {
   return raycaster.intersectObjects(scene.children);
 };
 
-const getCameraIntersects = (event) => {
-  const prePointer = window.innerWidth*0.5;
-  pointer.x = (prePointer / window.innerWidth) * 2 - 1;
-  // console.log('window.innerWidth*0.5', window.innerWidth*0.5) * 2 + 1;
-  // console.log('middle pointer x: ', pointer.x);
-  pointer.y = -((window.innerHeight*0.5) / window.innerHeight) * 2 + 1;
-  // console.log('window.innerHeight*0.5', window.innerHeight*0.5);
-  // console.log('middle pointer y: ', pointer.y);
+//returns the first object directly infront of the camera
+const getCameraIntersects = () => {
+  pointer.x = 0;
+  pointer.y = 0;
   raycaster.setFromCamera(pointer, camera);
-
-  // const projector = new THREE.Raycaster();
-  // const straight_ahead = new THREE.Vector3(0,0,.5);
-  // projector.unproject(camera);
-  // straight_ahead.sub(camera.position);
-  
-  // raycaster.setFromCamera(straight_ahead, camera);
-  // console.log('camera intersects: ', raycaster.intersectObjects(scene.children));
   return raycaster.intersectObjects(scene.children);
 };
 
@@ -361,12 +349,7 @@ const onMouseClick = (event) => {
   unhighlight(highlighted);
 
   let intersects = getMouseIntersects(event);
-  let cameraIntersects = getCameraIntersects(event);
-  let cameraSelected = cameraIntersects[0].object;
-  console.log('camera selected: ', cameraIntersects[0].object);
-  let cameraToHighlight = [cameraSelected.id];
-  console.log('cameraToHighlight: ', cameraToHighlight);
-  highlight(cameraToHighlight, 0x888888);
+
   if (intersects.length > 0) {
     selected = intersects[0].object;
     console.log("Selected: ", selected)
