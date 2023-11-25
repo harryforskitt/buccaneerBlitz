@@ -70,10 +70,26 @@ document.getElementById("moveUnit").onclick = async() => {
   const unitID = units[0]['_id'];
   console.log('unitID to move: ', unitID);
   const tile = "10";
+  const response = moveUnit(unitID, tile)
+  .then((response) => {
+    console.log('response in onclick: ', response);
+    if (response === 200) {
+      //This deletes everythign and re-renders the game (very inneficient but easier for now)
+    scene.remove.apply(scene, scene.children);
+    renderGame();
+  };
+  });
+  
+  return response;
+};
+
+const moveUnit = async (unitID, tile) => {
+  var status
   const data = {
     "unitID": unitID,
     "tile": tile
   };
+
   const response = await fetch('http://127.0.0.1:5000/moveUnit',{
     method: "POST",
     headers: {
@@ -82,16 +98,18 @@ document.getElementById("moveUnit").onclick = async() => {
       "authorization": JWT,
     },
     body: JSON.stringify(data)
-  }).then((res) => {
+  })
+  
+  .then((res) => {
+    
+    status = res.status
+    console.log('response status: ', status)
     if (res.status === 400) {
       throw new Error('your error message here');
   }
   })
+  return(status);
 
-  //This deletes everythign and re-renders the game (very inneficient but easier for now)
-  scene.remove.apply(scene, scene.children);
-  renderGame();
-  return response;
 };
 
 const getGame = async () => {
@@ -366,16 +384,31 @@ const onRightClick = (event) => {
   if (intersects.length > 0) {
     //console.log('man: ' + man.name);
     if (selected.objectType == "unit") {
+      const targetPosition = intersects[0]['object']['_id'];
+      console.log('move target tile _id: ', targetPosition);
+      const unitID = selected._id;
+      console.log('unit._id: ', unitID);
+      console.log('move target tile _id: ', unitID);
       //Get position of right clicked tile
-      var targetPosition = intersects[0].object.position;
+      // var targetPosition = intersects[0].object.position;
+
+      const response = moveUnit(unitID, targetPosition)
+      .then((response) => {
+        console.log('response in onclick: ', response);
+        if (response === 200) {
+          //This deletes everythign and re-renders the game (very inneficient but easier for now)
+        scene.remove.apply(scene, scene.children);
+        renderGame();
+  };
+  });
 
       //Set the x and z position of the man to the right clicked tile
 
-      selected.position.x = targetPosition.x;
-      selected.position.z = targetPosition.z;
-      selected.a = intersects[0].object.a;
-      selected.b = intersects[0].object.b;
-      selected.c = intersects[0].object.c;
+      // selected.position.x = targetPosition.x;
+      // selected.position.z = targetPosition.z;
+      // selected.a = intersects[0].object.a;
+      // selected.b = intersects[0].object.b;
+      // selected.c = intersects[0].object.c;
     }
   }
   unhighlight(highlighted);

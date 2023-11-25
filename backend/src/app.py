@@ -275,6 +275,7 @@ def createUnit(tile, player, type):
 def moveUnit():
     print(request)
     json = request.get_json()
+    print('unitID: ', json.get('unitID'))
     unitID = json.get('unitID')['$oid']
     print('unit id from json: ', unitID)
     tile = json.get('tile')
@@ -311,7 +312,7 @@ def moveUnit():
     
     client.close()
     # print(unit)
-    return({"some": "data"})
+    return({"some": "data"}, 200)
 
 #@app.route("/")
 #def hello_world():
