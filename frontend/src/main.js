@@ -4,6 +4,8 @@
 
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { MapControls } from 'three/addons/controls/MapControls.js';
+import { FlyControls } from 'three/addons/controls/FlyControls.js';
 
 var JWT = localStorage.getItem('JWT');
 console.log(JWT);
@@ -272,10 +274,34 @@ const getMouseIntersects = (event) => {
   // calculate pointer position in normalized device coordinates
   // (-1 to +1) for both components
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+  console.log('mouse pointer x: ', pointer.x);
+  console.log('event.clientX: ', event.clientX);
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  console.log('mouse pointer y: ', pointer.y);
+  console.log('event.clientY: ', event.clientY);
 
   raycaster.setFromCamera(pointer, camera);
   //console.log(raycaster.intersectObjects(scene.children));
+  return raycaster.intersectObjects(scene.children);
+};
+
+const getCameraIntersects = (event) => {
+  const prePointer = window.innerWidth*0.5;
+  pointer.x = (prePointer / window.innerWidth) * 2 - 1;
+  // console.log('window.innerWidth*0.5', window.innerWidth*0.5) * 2 + 1;
+  // console.log('middle pointer x: ', pointer.x);
+  pointer.y = -((window.innerHeight*0.5) / window.innerHeight) * 2 + 1;
+  // console.log('window.innerHeight*0.5', window.innerHeight*0.5);
+  // console.log('middle pointer y: ', pointer.y);
+  raycaster.setFromCamera(pointer, camera);
+
+  // const projector = new THREE.Raycaster();
+  // const straight_ahead = new THREE.Vector3(0,0,.5);
+  // projector.unproject(camera);
+  // straight_ahead.sub(camera.position);
+  
+  // raycaster.setFromCamera(straight_ahead, camera);
+  // console.log('camera intersects: ', raycaster.intersectObjects(scene.children));
   return raycaster.intersectObjects(scene.children);
 };
 
@@ -335,10 +361,17 @@ const onMouseClick = (event) => {
   unhighlight(highlighted);
 
   let intersects = getMouseIntersects(event);
+  let cameraIntersects = getCameraIntersects(event);
+  let cameraSelected = cameraIntersects[0].object;
+  console.log('camera selected: ', cameraIntersects[0].object);
+  let cameraToHighlight = [cameraSelected.id];
+  console.log('cameraToHighlight: ', cameraToHighlight);
+  highlight(cameraToHighlight, 0x888888);
   if (intersects.length > 0) {
     selected = intersects[0].object;
-    console.log("Selected _id: ", selected._id)
+    console.log("Selected: ", selected)
     let toHighlight = [selected.id];
+    console.log('toHighlight: ', toHighlight);
 
     //change this to check that the type of the object is a unit
     console.log('selected.objectType: ', selected.objectType);
@@ -546,16 +579,46 @@ const secondTile = scene.getObjectById(getTile(-1, 1, 0));
 var tilesNumber;
 //console.log(tiles);
 
+
+window.addEventListener("keydown", onKeyDown);
+
+function onKeyDown(evt){
+  if (evt.keyCode == "38"){
+    console.log('up arrow press detected');
+    camera.translateY( 10 );
+  };
+  if (evt.keyCode == "40"){
+    console.log('down arrow press detected');
+    camera.translateY( - 10 );
+  };
+  if (evt.keyCode == "37"){
+    console.log('down arrow press detected');
+    camera.translateX( - 10 );
+  };
+  if (evt.keyCode == "39"){
+    console.log('down arrow press detected');
+    camera.translateX( 10 );
+  };
+  
+};
+
+
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(10, 0, 40);
 camera.position.x = 25;
 camera.position.y = 50;
 camera.position.z = 25;
 controls.update();
-controls.enablePan = false;
+controls.enablePan = true;
 controls.enableDamping = true;
 
 function animate() {
+  try{
+    const target = getCameraIntersects()[0].object
+    // console.log('target: ', target);
+    controls.target.set(target.position.x, target.position.y, target.position.z);
+    }
+    catch{}
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
 }
