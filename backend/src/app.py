@@ -220,7 +220,8 @@ def create_game():
         for j in range(0, 10):
             
             hex = {}
-            hex['_id'] = _id
+
+            hex['_id'] = ObjectId()
             hex['a'] = -i-j
             hex['b'] = 2 * j + i
             hex['c'] = -j
@@ -238,6 +239,10 @@ def create_game():
     print("start positions: ", startPositions)
 
     for i in range(0, len(startPositions)):
+        print('startPositions[i] :', startPositions[i])
+        print('tiles: ', tiles)
+        startPositionString = str(startPositions[i])
+        print('tile: ', tiles[startPositionString])
         unit = createUnit(startPositions[i], players[i], 'scout')
         # units[ObjectId()] = unit
         units.append(unit)
@@ -277,7 +282,8 @@ def moveUnit():
     print(request)
     json = request.get_json()
     print('unitID: ', json.get('unitID'))
-    unitID = json.get('unitID')['$oid']
+    # unitID = json.get('unitID')['$oid']
+    unitID = ObjectId("6563a25e89b2fbac2dff7a15")
     print('unit id from json: ', unitID)
     tile = json.get('tile')
     print('tile to move to: ', tile)
@@ -289,28 +295,66 @@ def moveUnit():
     print(unitID)
 
     print('unitID: ', unitID)
+    print('ObjectId(unitID): ', ObjectId(unitID))
     # unit = mycol.find_one({'$elemMatch': { "units._id": ObjectId("655fbf67c57836915cf8acbb")}, "units.player":  "harry"},{"units": 1})
     # unit = mycol.find_one({"tags": ObjectId("655f7b39b8ca04514dd5c427")},{})
     # unit = mycol.find({},{"units"})
 
-    # unitCursor = mycol.aggregate([{"$match": {"units._id": ObjectId(unitID)}},
-    #     {"$project": {
-    #         "units": {
-    #             "$filter": {
-    #                 "input": "$units",
-    #                 "as": "unit",
-    #                 "cond": {"$eq": ["$$unit._id", ObjectId("655fbf67c57836915cf8acbb")]}
-    #             }
-    #         }
-    #     }}
-    #     ])
-    # print('found')
-    # for i in unitCursor:
-    #     unit = i
-    #     break
-    mycol.update_one({ "units._id": ObjectId(unitID) }, { "$set": {"units.$.tile":  tile}})
-
+    unitCursor = mycol.aggregate([{"$match": {"units._id": ObjectId(unitID)}},
+        {"$project": {
+            "units": {
+                "$filter": {
+                    "input": "$units",
+                    "as": "unit",
+                    "cond": {"$eq": ["$$unit._id", ObjectId(unitID)]}
+                }
+            }
+        }}
+        ])
+    # index = mycol.aggregate({"$indexOfArray:": [["$units"], [ObjectId(unitID)]] })
+    item = {
+			"_id" : ObjectId("6563a25e89b2fbac2dff7a15"),
+			"tile" : 21,
+			"player" : "harry",
+			"type" : "scout"
+		}
+    print('found')
+    for i in unitCursor:
+        print('i in unitCursor: ', i)
+        units = i['units']
+        unit = units[0]
+        unitTile = units[0]['tile']
+        break
+    indexCursor = mycol.match.aggregate([
+    { "$project": {
+    "index": {
+        "$indexOfArray": [
+        "$units",
+        {
+			"_id" : ObjectId("65636a6d37d1af4136d28d14"),
+			"tile" : 21,
+			"player" : "harry",
+			"type" : "scout"
+		}
+        ]
+    }
+    }}
+    ])
+    print('index cursor: ', indexCursor)
+    for i in indexCursor:
+        print('i in indexCursor')
+        print('index: ', i)
+    print('printed index')
+    print('original unit: ', unit)
+    print('unit tile: ', unitTile)
+    unit.update({'tile': tile})
+    print('new unit: ', unit)
+    testId = ObjectId("65636a6d37d1af4136d28d14")
+    mycol.update_one({"units._id": unitID}, { "$set": {"units.$.tile": 0}})
+    # mycol.update_one({"_id": ObjectId("6563a25e89b2fbac2dff7a15")}, { "$set": {"type": "test"}})
+    # mycol.update_one({ "_id": ObjectId(unitID) }, { "$set": {"units.$.tile":  tile}})
     
+        
     client.close()
     # print(unit)
     return({"some": "data"}, 200)

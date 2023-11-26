@@ -26,8 +26,8 @@ mycol = mydb['games']
 # for i in mycol.find():
 #     print(i)
 
-#Delete all documents in the collection
-#mycol.delete_many({})
+# Delete all documents in the collection
+# mycol.delete_many({})
 
 # select unit by ID
 # unitCursor = mycol.aggregate([{"$match": {"units._id": ObjectId("655fbf67c57836915cf8acbb")}},
@@ -47,10 +47,10 @@ mycol = mydb['games']
 # print(unit)
 
 #select
-# print(list(mycol.find({}, {})))
+
 
 # udpate unit tile
-mycol.update_one({ "units._id": ObjectId("6560aded82be688c9ea474d8") }, { "$set": {"units.$.tile":  "1"}})
+# mycol.update_one({ "units._id": ObjectId("6560aded82be688c9ea474d8") }, { "$set": {"units.$.tile":  "1"}})
 
 # for prop, value in vars(client.options).items():
 #     print("Property: {}: Value: {} ".format(prop, value))
@@ -68,5 +68,14 @@ mycol.update_one({ "units._id": ObjectId("6560aded82be688c9ea474d8") }, { "$set"
 # print("Databases:")
 # databases = client.list_database_names()
 # print("Databases: {}".format(databases))
+
+unitID = ObjectId("6563a25e89b2fbac2dff7a15")
+# mycol.update_one({"units._id": ObjectId("6563a25e89b2fbac2dff7a15")}, { "$set": {"units.$.type": "test2"}})
+mycol.update_one({"units._id": unitID}, { "$set": {"units.$.tile": 0}})
+print(list(mycol.find({"units._id": ObjectId("6563a25e89b2fbac2dff7a15")}, {})))
+
+#read all
+# for i in mycol.find():
+#     print(i)
 
 client.close()
