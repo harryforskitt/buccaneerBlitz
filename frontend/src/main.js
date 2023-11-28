@@ -77,8 +77,9 @@ document.getElementById("moveUnit").onclick = async() => {
     console.log('response in onclick: ', response);
     if (response === 200) {
       //This deletes everythign and re-renders the game (very inneficient but easier for now)
-    scene.remove.apply(scene, scene.children);
-    renderGame();
+    unrenderUnit(units[0]);
+    // scene.remove.apply(scene, scene.children);
+    // renderGame();
   };
   });
   
@@ -179,11 +180,11 @@ var overlaid = false;
 const overlay = document.getElementById("test");
 overlay.onmouseenter = function () {
   overlaid = true;
-  console.log("overlaid: " + overlaid);
+  // console.log("overlaid: " + overlaid);
 };
 overlay.onmouseleave = function () {
   overlaid = false;
-  console.log("overlaid: " + overlaid);
+  // console.log("overlaid: " + overlaid);
 };
 
 document.getElementById("createCity").onclick = function () {
@@ -400,6 +401,7 @@ const onRightClick = (event) => {
   if (overlaid == true) {
     return;
   }
+  const currentSelected = selected;
 
   unhighlight(highlighted);
 
@@ -411,10 +413,12 @@ const onRightClick = (event) => {
 
   if (intersects.length > 0) {
     //console.log('man: ' + man.name);
-    if (selected.objectType == "unit") {
+    if (currentSelected.objectType == "unit") {
+      const targetTileObject = intersects[0]['object'];
+      console.log('target tile object: ', targetTileObject);
       const targetPosition = intersects[0]['object']['_id'];
       console.log('move target tile _id: ', targetPosition);
-      const unitID = selected._id;
+      const unitID = currentSelected._id;
       console.log('unit._id: ', unitID);
       console.log('move target tile _id: ', unitID);
       //Get position of right clicked tile
@@ -426,18 +430,30 @@ const onRightClick = (event) => {
         if (response === 200) {
           //This deletes everything and re-renders the game (very inneficient but easier for now)
         console.log('highlighted before re-rendering: ', highlighted);
-        scene.remove.apply(scene, scene.children);
-        renderGame();
+        currentSelected.a = targetTileObject.a;
+        currentSelected.b = targetTileObject.b;
+        currentSelected.c = targetTileObject.c;
+        currentSelected.position.setX(targetTileObject.position.x);
+        // currentSelected.position.setY(targetTileObject.position.y);
+        currentSelected.position.setZ(targetTileObject.position.z);
+        unhighlight(highlighted);
+        // currentSelected.position.x = targetTileObject.x;
+        // currentSelected.position.y = targetTileObject.y;
+        // currentSelected.position.z = targetTileObject.z;
+        
+        // unrenderUnit(currentSelected);
+        // scene.remove.apply(scene, scene.children);
+        // renderGame();
   };
   });
 
       //Set the x and z position of the man to the right clicked tile
 
-      // selected.position.x = targetPosition.x;
-      // selected.position.z = targetPosition.z;
-      // selected.a = intersects[0].object.a;
-      // selected.b = intersects[0].object.b;
-      // selected.c = intersects[0].object.c;
+      // currentSelected.position.x = targetPosition.x;
+      // currentSelected.position.z = targetPosition.z;
+      // currentSelected.a = intersects[0].object.a;
+      // currentSelected.b = intersects[0].object.b;
+      // currentSelected.c = intersects[0].object.c;
     }
   }
   unhighlight(highlighted);
@@ -519,6 +535,18 @@ function renderUnits(units){
     // console.log('tile: ', tile);
     createUnit(tile.a, tile.b, tile.c, unit.name, unit.player, unit._id, tile)
   };
+};
+
+function unrenderUnit(selected){
+  console.log('selected before removal: ', (scene.getObjectById(selected.id)));
+  (scene.getObjectById(selected.id)).geometry.dispose();
+  (scene.getObjectById(selected.id)).material.dispose()
+  scene.remove((scene.getObjectById(selected.id)));
+  // for (const key in selected) {
+  //   delete selected[key];
+  // };
+  renderer.renderLists.dispose();
+  console.log('selected after removal: ', (scene.getObjectById(selected.id)));
 };
 
 // console.log('console log of await (getGame):', await(getGame));
@@ -605,6 +633,8 @@ function onKeyDown(evt){
   };
   
 };
+
+
 
 
 const controls = new OrbitControls(camera, renderer.domElement);
