@@ -93,6 +93,34 @@ def user_match(f):
     
     return decorated
 
+def unit_match(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        print('verifying that user owns unit')
+        json = request.get_json()
+        unitID = json.get('unitID')
+
+        token = request.headers.get('Authorization')
+        tokenData = getTokenData(token)
+        username = (tokenData['user'])        
+
+        client = pymongo.MongoClient(CONNECTION_STRING)
+
+        mydb = client['society']
+        mycol = mydb['games']
+
+        unitUser = mycol.find_one({"units._id": ObjectId(unitID)}, {"units.$.user": 1})
+        
+        client.close()
+
+        if unitUser != username:
+            message = str('user ' + username + ' does not own unti ' + unitID)
+            return jsonify({'message' : message}), 401
+
+        return f(*args, **kwargs)
+    
+    return decorated
+
 #This function gets the data from the JWT
 def getTokenData(token):
     data = jwt.decode(token, 'thisisthesecretkey', algorithms=["HS256"])
@@ -288,6 +316,7 @@ def createUnit(tile, player, type):
 @app.route('/moveUnit', methods=['POST'])
 @token_required
 @user_match
+@unit_match
 def moveUnit():
     print(request)
     json = request.get_json()
