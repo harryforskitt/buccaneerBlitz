@@ -8,13 +8,13 @@ import { MapControls } from 'three/addons/controls/MapControls.js';
 import { FlyControls } from 'three/addons/controls/FlyControls.js';
 
 var JWT = localStorage.getItem('JWT');
-console.log(JWT);
+// console.log(JWT);
 
 //game without harry in: 655f41cb4c063e738be5bd16
 //game with harry in: 655f41764c063e738be5bd02
 
 //change this to read from local storage to get the game the user selected
-const gameID = '6562665f9a10e4d02ec58ec4';
+const gameID = '6565dc3b7b7ea8ca4c42ffd0';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -124,14 +124,14 @@ const getGame = async () => {
     }
   });
   const myJson = await response.json();
-  console.log("myJson: ", myJson);
-  console.log(myJson[0]);
+  // console.log("myJson: ", myJson);
+  // console.log(myJson[0]);
   //console.log(myJson['map']);
   return(myJson);
   // do something with myJson
 };
 
-console.log(getGame());
+// console.log(getGame());
 
 //const JWT = await getJWT('harry', 'password');
 //console.log('JWT: ', JWT);
@@ -211,13 +211,13 @@ function createCity(a, b, c, name) {
 
 function getMoves(unit, range) {
   //console.log('unit :');
-  console.log('unit:, ', unit);
+  // console.log('unit:, ', unit);
   const a = unit.a;
-  console.log('a:, ', a);
+  // console.log('a:, ', a);
   const lba = a - range;
-  console.log('lba:, ', lba);
+  // console.log('lba:, ', lba);
   const uba = a + range;
-  console.log('uba:, ', uba);
+  // console.log('uba:, ', uba);
 
   const b = unit.b;
   const lbb = b - range;
@@ -235,17 +235,19 @@ function getMoves(unit, range) {
     var testa = tiles[i].a;
     var testb = tiles[i].b;
     var testc = tiles[i].c;
-
+    var tile = scene.getObjectByProperty('_id', tiles[i])
+    // console.log('tiles[i].a: ', tiles[i].a);
+    // console.log ("getObjectByProperty('_id', tiles[i]).a: ", scene.getObjectByProperty('_id', tiles[i]).a);
     if (
-      lba <= tiles[i].a &&
-      uba >= tiles[i].a &&
-      lbb <= tiles[i].b &&
-      ubb >= tiles[i].b &&
-      lbc <= tiles[i].c &&
-      ubc >= tiles[i].c
+      lba <= tile.a &&
+      uba >= tile.a &&
+      lbb <= tile.b &&
+      ubb >= tile.b &&
+      lbc <= tile.c &&
+      ubc >= tile.c
     ) {
-      console.log('adding tile to highlight: ', tiles[i])
-      moves.push(tiles[i].id);
+      // console.log('adding tile to highlight: ', tiles[i])
+      moves.push(tiles[i]);
     }
   }
   //console.log('moves:');
@@ -263,7 +265,7 @@ function getTile(a, b, c) {
   for (let i = 0; i < tilesNumber; i++) {
     //console.log(a);
     if (a == tiles[i].a && b == tiles[i].b && c == tiles[i].c) {
-      tile = tiles[i].id;
+      tile = tiles[i]._id;
     }
   }
   return tile;
@@ -274,11 +276,11 @@ const getMouseIntersects = (event) => {
   // calculate pointer position in normalized device coordinates
   // (-1 to +1) for both components
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-  console.log('mouse pointer x: ', pointer.x);
-  console.log('event.clientX: ', event.clientX);
+  // console.log('mouse pointer x: ', pointer.x);
+  // console.log('event.clientX: ', event.clientX);
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-  console.log('mouse pointer y: ', pointer.y);
-  console.log('event.clientY: ', event.clientY);
+  // console.log('mouse pointer y: ', pointer.y);
+  // console.log('event.clientY: ', event.clientY);
 
   raycaster.setFromCamera(pointer, camera);
   //console.log(raycaster.intersectObjects(scene.children));
@@ -301,11 +303,13 @@ function highlight(tiles, color) {
   //console.log('tiles in highlight function:');
   //console.log(tiles);
   for (let i = 0; i < tiles.length; i++) {
-    var target = scene.getObjectById(tiles[i]);
+    // console.log('tiles in highlight: ', tiles);
+    // console.log('tiles[i]: ',tiles[i])
+    var target = scene.getObjectByProperty('_id', tiles[i]);
     //console.log('target in highlight function:');
-    //console.log(target);
+    // console.log('target in highlight function:', target);
     target.material.color.set(color);
-    highlighted.push(target.id);
+    highlighted.push(target._id);
   }
   //console.log('highlight tiles: ' + tiles);
   // highlighted = tiles;
@@ -318,18 +322,23 @@ function unhighlight(tiles) {
   //You have to calculate the original length of the tiles array before the loop, becasue the splicing changes the indexes and makes it skip every other element
   length = tiles.length;
   for (let i = 0; i < length; i++) {
-    var target = scene.getObjectById(tiles[0]);
+    console.log('tiles in unhighlight: ', tiles);
+    console.log('tiles in highlighted: ', highlighted);
+    var target = scene.getObjectByProperty('_id', tiles[0]);
     //console.log('target: ');
     //console.log(target);
+    console.log('target: ', target);
     target.material.color.setHex("0x" + target.startColor);
     //var tilesI = tiles[i];
     //console.log('tiles[i] :' + tiles[0]);
     //console.log('highlighted:');
     //console.log(highlighted);
     var toRemove = highlighted.indexOf(tiles[0]);
+    console.log('index to remove from highlighted: ', toRemove);
     //console.log('to remove: ' + toRemove);
     highlighted.splice(toRemove, 1);
   }
+  console.log('highlighted after unhighlighting: ', highlighted);
   //highlighted = [];
   //console.log('unhighlight highlighted: ' + highlighted);
 }
@@ -346,26 +355,29 @@ const onMouseClick = (event) => {
 
   //console.log('highlighted before clearing:');
   //console.log(highlighted);
-  unhighlight(highlighted);
+  console.log('highlighted: ', highlighted);
+  if (highlighted.length > 0){
+    unhighlight(highlighted);
+  };
 
   let intersects = getMouseIntersects(event);
 
   if (intersects.length > 0) {
     selected = intersects[0].object;
     console.log("Selected: ", selected)
-    let toHighlight = [selected.id];
+    let toHighlight = [selected._id];
     console.log('toHighlight: ', toHighlight);
 
     //change this to check that the type of the object is a unit
-    console.log('selected.objectType: ', selected.objectType);
+    // console.log('selected.objectType: ', selected.objectType);
     if (selected.objectType == "unit") {
       //console.log('toHighlight:');
       //console.log(toHighlight);
-      console.log("toHighlight: ");
-      console.log(toHighlight);
+      // console.log("toHighlight: ");
+      // console.log(toHighlight);
       highlight(toHighlight, 0xff00ff);
 
-      //console.log(selected);
+      // console.log('selected in onMouseClick: ', selected);
 
       let moveTiles = getMoves(selected, 2);
       console.log('move tiles: ', moveTiles);
@@ -412,7 +424,8 @@ const onRightClick = (event) => {
       .then((response) => {
         console.log('response in onclick: ', response);
         if (response === 200) {
-          //This deletes everythign and re-renders the game (very inneficient but easier for now)
+          //This deletes everything and re-renders the game (very inneficient but easier for now)
+        console.log('highlighted before re-rendering: ', highlighted);
         scene.remove.apply(scene, scene.children);
         renderGame();
   };
@@ -439,7 +452,7 @@ const onRightClick = (event) => {
   //console.log(unitTile);
   highlight(unitTile, 0xffffff);
 
-  let toHighlight = [selected.id];
+  let toHighlight = [selected._id];
 
   highlight(toHighlight, 0xff00ff);
 };
@@ -449,7 +462,7 @@ window.addEventListener("contextmenu", onRightClick);
 //Create map
 
 function renderMap(map) {
-  console.log('map: ', map);
+  // console.log('map: ', map);
   for (let i = 0; i < Object.keys(map).length; i++){
     let material = new THREE.MeshBasicMaterial({ color: map[i]['color'] });
     var hex = new THREE.Mesh(geometry, material);
@@ -458,7 +471,7 @@ function renderMap(map) {
     //console.log('map[i][a]: ', map[i]['a']);
 
     //should do this programatticaly instead of setting each value
-    hex._id = map[i]['_id'];
+    hex._id = map[i]['_id']['$oid'];
     hex.a = map[i]['a'];
     hex.b = map[i]['b'];
     hex.c = map[i]['c'];
@@ -468,56 +481,61 @@ function renderMap(map) {
     hex.color = map[i]['color'];
     hex.startColor = map[i]['startColor'];
     
-
+    // console.log('hex: ', hex);
     scene.add(hex);
     //console.log(hex);
     hex.startColor = hex.material.color.getHexString();
     //console.log('hex startColor: ' + hex.startColor);
     hex.translateX(hex.i * 4.3);
     hex.translateZ(hex.j * 15 + hex.k);
-    tiles.push(hex);
+    // console.log('pushing hex: ', hex._id)
+    tiles.push(hex._id);
   };
   tilesNumber = tiles.length;
+  // console.log('beginning tiles: ', tiles);
 
 };
 
 const renderGame = async () => {
   const game = getGame()
   .then((finalResult) => {
-  console.log('res game: ', finalResult['0']['tiles']);
+  // console.log('res game: ', finalResult['0']['tiles']);
   renderMap(finalResult['0']['tiles']);
-  console.log('tiles: ', tiles);
-  console.log('render map called');
+  // console.log('tiles: ', tiles);
+  // console.log('render map called');
   renderUnits(finalResult['0']['units']);
   });
 };
 
 function renderUnits(units){
-  console.log('units: ', units);
+  // console.log('units: ', units);
   for (let i = 0; i < Object.keys(units).length; i++){
     const unit = units[i]
-    const tileNumber = unit['tile']
-    console.log("unit tile: ", tileNumber);
-    const tile = tiles[tileNumber];
-    console.log('tile: ', tile);
-    createUnit(tile.a, tile.b, tile.c, unit.name, unit.player, unit._id)
+    // console.log('unit: ', unit);
+    const tile_id = (unit['tile']['$oid'])
+    // console.log("unit tile: ", tile_id);
+    const tile = scene.getObjectByProperty('_id', (tile_id));
+    // const tile = scene.getObjectByProperty('_id', 10);
+    // console.log('tile: ', tile);
+    createUnit(tile.a, tile.b, tile.c, unit.name, unit.player, unit._id, tile)
   };
 };
 
-console.log('console log of await (getGame):', await(getGame));
+// console.log('console log of await (getGame):', await(getGame));
 renderGame();
 
-function createUnit(a, b, c, name, player, _id) {
-  const tile = scene.getObjectById(getTile(a, b, c));
+function createUnit(a, b, c, name, player, _id, tile) {
+  // const tile = scene.getObjectByProperty('_id', getTile(a, b, c));
+  // console.log('tile in create unit: ', tile);
   const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
   const unit = new THREE.Mesh(geometry2, material);
-  unit._id =_id;
+  unit._id = _id['$oid'];
   unit.objectType = 'unit';
   unit.name = name;
   unit.player = player;
   scene.add(unit);
   unit.translateY(1);
-  console.log(tile.position.x);
+  // console.log(tile.position.x);
   unit.position.setX(tile.position.x);
   unit.translateY(1);
   unit.position.setZ(tile.position.z);
@@ -526,6 +544,7 @@ function createUnit(a, b, c, name, player, _id) {
   unit.c = c;
   unit.startColor = unit.material.color.getHexString();
   units.push(unit);
+  // console.log('created unit: ', unit)
   return unit;
 }
 

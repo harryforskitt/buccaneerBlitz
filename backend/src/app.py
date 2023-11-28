@@ -71,9 +71,16 @@ def user_match(f):
         mydb = client['society']
         mycol = mydb['games']
 
+        print('gameID: ', gameID)
+
         playersQuery = list(parse_json(mycol.find({'_id': ObjectId(gameID)}, {"players": 1})))
         
         client.close()
+        print('printing playersQuery')
+        print('players query: ', playersQuery)
+        # for i in playersQuery:
+        #     print("playersQuery[i]: ", playersQuery[i])
+        print('printed playersQuery')
 
         players = playersQuery[0]['players']
         print (players)
@@ -213,7 +220,7 @@ def create_game():
     tiles = {}
     units = []
     colorRota = [0xff0000, 0x00ff00, 0x0000ff, 0xff0000, 0x00ff00, 0x0000ff]
-    _id = "0"
+    id = "0"
     k = 0
 
     for i in range(0, 10):
@@ -231,8 +238,8 @@ def create_game():
             hex['color'] = colorRota[i % 3]
             hex['startColor'] = colorRota[i % 3]
             # print(hex)
-            tiles[_id] = hex
-            _id = str(int(_id)+1)
+            tiles[id] = hex
+            id = str(int(id)+1)
         k += 7.5
 
     startPositions = random.sample(range(0, len(tiles)), len(players))
@@ -243,7 +250,8 @@ def create_game():
         print('tiles: ', tiles)
         startPositionString = str(startPositions[i])
         print('tile: ', tiles[startPositionString])
-        unit = createUnit(startPositions[i], players[i], 'scout')
+        startPosition_id = tiles[startPositionString]['_id']
+        unit = createUnit(startPosition_id, players[i], 'scout')
         # units[ObjectId()] = unit
         units.append(unit)
 
@@ -275,6 +283,8 @@ def createUnit(tile, player, type):
     unit['_id'] = ObjectId()
     return(unit)
 
+
+#change this to move selected unit to selected tile (it currently uses a hard-coded unit and tile)
 @app.route('/moveUnit', methods=['POST'])
 @token_required
 @user_match
@@ -282,8 +292,8 @@ def moveUnit():
     print(request)
     json = request.get_json()
     print('unitID: ', json.get('unitID'))
-    # unitID = json.get('unitID')['$oid']
-    unitID = ObjectId("6563a25e89b2fbac2dff7a15")
+    unitID = json.get('unitID')
+    # unitID = ObjectId("6565dc3b7b7ea8ca4c42ffce")
     print('unit id from json: ', unitID)
     tile = json.get('tile')
     print('tile to move to: ', tile)
@@ -349,8 +359,8 @@ def moveUnit():
     print('unit tile: ', unitTile)
     unit.update({'tile': tile})
     print('new unit: ', unit)
-    testId = ObjectId("65636a6d37d1af4136d28d14")
-    mycol.update_one({"units._id": unitID}, { "$set": {"units.$.tile": 0}})
+    testId = ObjectId("6565dc3b7b7ea8ca4c42ffce")
+    mycol.update_one({"units._id": ObjectId(unitID)}, { "$set": {"units.$.tile": ObjectId(tile)}})
     # mycol.update_one({"_id": ObjectId("6563a25e89b2fbac2dff7a15")}, { "$set": {"type": "test"}})
     # mycol.update_one({ "_id": ObjectId(unitID) }, { "$set": {"units.$.tile":  tile}})
     
