@@ -14,6 +14,7 @@ from jwt import decode
 import datetime
 from functools import wraps
 
+
 #Database dependencies:
 
 import os
@@ -109,13 +110,40 @@ def unit_match(f):
         mydb = client['society']
         mycol = mydb['games']
 
-        unitUser = mycol.find_one({"units._id": ObjectId(unitID)}, {"units.$.user": 1})
-        
+        # unitUser = mycol.find_one({"units._id": ObjectId(unitID)}, {'units': 1})
+        # unitUser = mycol.find_one([{ "$match": {"player": ObjectId(unitID)}}])
+        # for i in unitUser:
+        #     print('unitUser[i]', i)
+        unitCursor = mycol.aggregate([{"$match": {"units._id": ObjectId(unitID)}},
+        {"$project": {
+            "units": {
+                "$filter": {
+                    "input": "$units",
+                    "as": "unit",
+                    "cond": {"$eq": ["$$unit._id", ObjectId(unitID)]}
+                }
+            }
+        }}
+        ])
+        # index = mycol.aggregate({"$indexOfArray:": [["$units"], [ObjectId(unitID)]] })
+        print('found')
+        for i in unitCursor:
+            print('i in unitCursor: ', i)
+            units = i['units']
+            unit = units[0]
+            unitUser = units[0]['player']
+            break
+        print('unit: ', unit)
+            
         client.close()
 
         if unitUser != username:
-            message = str('user ' + username + ' does not own unti ' + unitID)
+            message = str('user ' + str(username) + ' does not own unit ' + str(unitID))
+            print(message)
             return jsonify({'message' : message}), 401
+        
+        message = str('user ' + str(username) + ' does own unit ' + str(unitUser))
+        print(message)
 
         return f(*args, **kwargs)
     
