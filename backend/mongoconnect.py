@@ -74,11 +74,11 @@ mycol = mydb['games']
 # mycol.update_one({"_id": ObjectId("6565e5c04cb6af43923bbb92")}, { "$set": {"moves": []}})
 
 
-unitID = "6565dc3b7b7ea8ca4c42ffcb"
-tile = "6565dc3b7b7ea8ca4c42ff7c"
-move = {"type": "move", "unitID": ObjectId(unitID), "tileID": ObjectId(tile)}
-print('move before storage: ', move)
-mycol.update_one({"_id": ObjectId("6565e5c04cb6af43923bbb92")}, { "$push": {"moves": move}})
+# unitID = "6565dc3b7b7ea8ca4c42ffcb"
+# tile = "6565dc3b7b7ea8ca4c42ff7c"
+# move = {"type": "move", "unitID": ObjectId(unitID), "tileID": ObjectId(tile)}
+# print('move before storage: ', move)
+# mycol.update_one({"_id": ObjectId("6565e5c04cb6af43923bbb92")}, { "$push": {"moves": move}})
 
 # movesCursor = mycol.find({'_id': ObjectId("6565e5c04cb6af43923bbb92")}, {"moves": 1})
 

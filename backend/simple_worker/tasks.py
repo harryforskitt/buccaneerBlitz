@@ -18,3 +18,7 @@ def longtime_add(x, y):
     #     print('counter', counter)
     #     counter += 1
     print('d')
+
+@app.task()
+def runMoves(gameId):
+    return()
