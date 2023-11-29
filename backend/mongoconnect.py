@@ -69,10 +69,39 @@ mycol = mydb['games']
 # databases = client.list_database_names()
 # print("Databases: {}".format(databases))
 
-unitID = ObjectId("6563a25e89b2fbac2dff7a15")
+# unitID = ObjectId("6563a25e89b2fbac2dff7a15")
 # mycol.update_one({"units._id": ObjectId("6563a25e89b2fbac2dff7a15")}, { "$set": {"units.$.type": "test2"}})
-mycol.update_one({"units._id": unitID}, { "$set": {"units.$.tile": 0}})
-print(list(mycol.find({"units._id": ObjectId("6563a25e89b2fbac2dff7a15")}, {})))
+# mycol.update_one({"_id": ObjectId("6565e5c04cb6af43923bbb92")}, { "$set": {"moves": []}})
+
+
+unitID = "6565dc3b7b7ea8ca4c42ffcb"
+tile = "6565dc3b7b7ea8ca4c42ff7c"
+move = {"type": "move", "unitID": ObjectId(unitID), "tileID": ObjectId(tile)}
+print('move before storage: ', move)
+mycol.update_one({"_id": ObjectId("6565e5c04cb6af43923bbb92")}, { "$push": {"moves": move}})
+
+# movesCursor = mycol.find({'_id': ObjectId("6565e5c04cb6af43923bbb92")}, {"moves": 1})
+
+# moves = []
+
+# for i in movesCursor:
+#     moves.append(i)
+
+# print(moves)
+
+# moveQuery = moves[0]['moves'][2][0]
+# moveFilter = moves[0]['moves'][2][1]
+
+# print('moveQuery: ', moveQuery)
+# print('moveFilter: ', moveFilter)
+
+# fullquery = asdict()
+
+# print(fullquery)
+
+# mycol.update_one(fullquery)
+     
+# print(list(mycol.find({"units._id": ObjectId("6563a25e89b2fbac2dff7a15")}, {})))
 
 #read all
 # for i in mycol.find():
