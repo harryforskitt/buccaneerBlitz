@@ -14,6 +14,7 @@ from jwt import decode
 import datetime
 from functools import wraps
 
+from celery import Celery
 
 #Database dependencies:
 
@@ -34,6 +35,9 @@ app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['SECRET_KEY'] = 'thisisthesecretkey'
+
+simple_app = Celery('simple_worker', broker='redis://redis:6379/0', backend='redis://redis:6379/0')
+
 CONNECTION_STRING = os.environ.get("COSMOS_CONNECTION_STRING")
 
 def token_required(f):
@@ -429,3 +433,26 @@ def moveUnit():
 #@app.route("/")
 #def hello_world():
     #return "<p>Hello, World!</p>"
+
+@app.route('/simple_start_task')
+def call_method():
+    app.logger.info("Invoking Method ")
+    #                        queue name in task folder.function name
+    r = simple_app.send_task('tasks.longtime_add', kwargs={'x': 1, 'y': 2})
+    app.logger.info(r.backend)
+    return r.id
+
+
+@app.route('/simple_task_status/<task_id>')
+def get_status(task_id):
+    status = simple_app.AsyncResult(task_id, app=simple_app)
+    print("Invoking Method ")
+    return "Status of the Task " + str(status.state)
+
+
+@app.route('/simple_task_result/<task_id>')
+def task_result(task_id):
+    result = simple_app.AsyncResult(task_id).result
+    return "Result of the Task " + str(result)
+
+print(call_method)

@@ -1,6 +1,6 @@
 #run 'docker compose up --build' to show changes by rebuilding images
 services:
-  backend:
+  flask:
     build: ./backend
     volumes:
       - type: bind
@@ -11,6 +11,8 @@ services:
       - backend/variables.env
     ports:
       - "5000:5000"
+    depends_on:
+      - redis
 
   frontend:
     build: ./frontend
@@ -22,4 +24,17 @@ services:
     command: sh -c "rm -rf node_modules/.vite/deps && npx vite --host 0.0.0.0"
     ports:
      - "5173:5173"
+
+  simple_worker:
+    build: './backend/simple_worker'
+    user: nobody
+    depends_on:
+      - redis
+      - flask
+
+
+  redis:
+    image: 'redis:4-alpine'
+    ports:
+      - '6379:6379'
     
