@@ -14,6 +14,7 @@ def longtime_add(x, y):
     # logger.info('Work Finished ')
     # return x + y
     counter = 0
-    while 1:
-        print('counter', counter)
-        counter += 1
+    # while 1:
+    #     print('counter', counter)
+    #     counter += 1
+    print('d')
