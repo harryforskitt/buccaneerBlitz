@@ -25,17 +25,17 @@ services:
     ports:
      - "5173:5173"
 
-  simple_worker:
-    build: './backend/simple_worker'
-    volumes:
-      - type: bind
-        source: ./backend/simple_worker
-        target: /simple_worker/src
-        read_only: true
-    user: nobody
-    depends_on:
-      - redis
-      - flask
+  # simple_worker:
+  #   build: './backend/simple_worker'
+  #   volumes:
+  #     - type: bind
+  #       source: ./backend/simple_worker
+  #       target: /simple_worker/src
+  #       read_only: true
+  #   user: nobody
+  #   depends_on:
+  #     - redis
+  #     - flask
 
   redis:
     image: 'redis:4-alpine'
