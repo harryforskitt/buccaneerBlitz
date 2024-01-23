@@ -7,12 +7,12 @@ import os
 import sys
 
 import pymongo
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from bson.objectid import ObjectId
 
-load_dotenv()
+# load_dotenv()
 CONNECTION_STRING = os.environ.get("COSMOS_CONNECTION_STRING")
-#print("Connection string: ", CONNECTION_STRING)
+print("Connection string: ", CONNECTION_STRING)
 client = pymongo.MongoClient(CONNECTION_STRING)
 
 mydb = client['society']
@@ -22,9 +22,18 @@ mycol = mydb['games']
 # new_game = {"_id": "4", "name": "harry's fourth test game"}
 # mycol.insert_one(new_game)
 
-#read all
-# for i in mycol.find():
-#     print(i)
+#set turn to 0
+# mycol.update_one({"_id": ObjectId("6565dc3b7b7ea8ca4c42ffd0")}, { "$set": {"turn": "0"}})
+
+#udpate all units in one game:
+
+
+for i in mycol.find():
+    if i['_id'] == ObjectId("6565dc3b7b7ea8ca4c42ffd0"):
+        print(i['units'])
+
+
+    # 6565dc3b7b7ea8ca4c42ffd0
 
 # Delete all documents in the collection
 # mycol.delete_many({})

@@ -14,7 +14,7 @@ var JWT = localStorage.getItem('JWT');
 //game with harry in: 655f41764c063e738be5bd02
 
 //change this to read from local storage to get the game the user selected
-const gameID = '6565dc3b7b7ea8ca4c42ffd0';
+const gameID = '65afdeb6d5431a537eeb1fb9';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(

@@ -40,6 +40,7 @@ simple_app = Celery('simple_worker', broker='redis://redis:6379/0', backend='red
 
 CONNECTION_STRING = os.environ.get("COSMOS_CONNECTION_STRING")
 
+
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -311,7 +312,7 @@ def create_game():
         startPositionString = str(startPositions[i])
         print('tile: ', tiles[startPositionString])
         startPosition_id = tiles[startPositionString]['_id']
-        unit = createUnit(startPosition_id, players[i], 'scout')
+        unit = createUnit(startPosition_id, players[i], 'scout', 2)
         # units[ObjectId()] = unit
         units.append(unit)
 
@@ -335,12 +336,14 @@ def create_game():
     response = flask.jsonify(game)
     return response
 
-def createUnit(tile, player, type):
+def createUnit(tile, player, type, movepoints):
     unit = {}
     unit['tile'] = tile
     unit['player'] = player
     unit['type'] = type
     unit['_id'] = ObjectId()
+    unit['movepoints'] = movepoints
+    unit['usedmovepoints'] = 0
     return(unit)
 
 
@@ -464,12 +467,24 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 
 def print_date_time():
-    time.sleep(4)
     print(time.strftime("%A, %d %B %Y %I:%M:%S %p"))
+
+def newturn(gameID):
+
+    client = pymongo.MongoClient(CONNECTION_STRING)
+    mydb = client['society']
+    mycol = mydb['games']
+
+    turn = mycol.find_one({"_id": ObjectId("6565dc3b7b7ea8ca4c42ffd0")}, {'turn': 1})
+    turn = turn['turn']
+    turn = int(turn) + 1
+    print('turn ', turn)
+
+    mycol.update_one({"_id": ObjectId("6565dc3b7b7ea8ca4c42ffd0")}, { "$set": {"turn": turn}})
 
 
 scheduler = BackgroundScheduler(job_defaults={'max_instances': 999999})
-scheduler.add_job(func=print_date_time, trigger="interval", seconds=3)
+scheduler.add_job(func=newturn, args=["6565dc3b7b7ea8ca4c42ffd0"], trigger="interval", seconds=5)
 scheduler.start()
 
 # Shut down the scheduler when exiting the app
