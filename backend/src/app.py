@@ -481,6 +481,10 @@ def newturn(gameID):
     print('turn ', turn)
 
     mycol.update_one({"_id": ObjectId("6565dc3b7b7ea8ca4c42ffd0")}, { "$set": {"turn": turn}})
+    #update all units used movement to 0 - not working yet
+    mycol.update_many({}, { "$set": {"units.$[].usedmovepoints": 0}})
+    mycol.update_many({}, { "$set": {"units.$[].movepoints": 2}})
+    # mycol.update_many({}, { "$set": {"units.$.usedmovepoints": ObjectId(tile)}})
 
 
 scheduler = BackgroundScheduler(job_defaults={'max_instances': 999999})
