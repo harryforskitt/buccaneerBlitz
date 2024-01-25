@@ -278,7 +278,7 @@ def create_game():
     players = request.get_json().get('players')
     print('players: ', players)
     game = {}
-    tiles = {}
+    tiles = []
     units = []
     colorRota = [0xff0000, 0x00ff00, 0x0000ff, 0xff0000, 0x00ff00, 0x0000ff]
     id = "0"
@@ -299,7 +299,7 @@ def create_game():
             hex['color'] = colorRota[i % 3]
             hex['startColor'] = colorRota[i % 3]
             # print(hex)
-            tiles[id] = hex
+            tiles.append(hex)
             id = str(int(id)+1)
         k += 7.5
 
@@ -309,9 +309,9 @@ def create_game():
     for i in range(0, len(startPositions)):
         print('startPositions[i] :', startPositions[i])
         print('tiles: ', tiles)
-        startPositionString = str(startPositions[i])
-        print('tile: ', tiles[startPositionString])
-        startPosition_id = tiles[startPositionString]['_id']
+        # startPositionString = str(startPositions[i])
+        print('tile: ', tiles[startPositions[i]])
+        startPosition_id = tiles[startPositions[i]]['_id']
         unit = createUnit(startPosition_id, players[i], 'scout', 2)
         # units[ObjectId()] = unit
         units.append(unit)
@@ -397,7 +397,8 @@ def moveUnit():
         print('i in unitCursor: ', i)
         units = i['units']
         unit = units[0]
-        unitTile = units[0]['tile']
+        print('unit: ', unit)
+        startTile = units[0]['tile']
         break
     indexCursor = mycol.match.aggregate([
     { "$project": {
@@ -420,11 +421,31 @@ def moveUnit():
         print('index: ', i)
     print('printed index')
     print('original unit: ', unit)
-    print('unit tile: ', unitTile)
     unit.update({'tile': tile})
     print('new unit: ', unit)
-    testId = ObjectId("6565dc3b7b7ea8ca4c42ffce")
-    mycol.update_one({"units._id": ObjectId(unitID)}, { "$set": {"units.$.tile": ObjectId(tile)}})
+    # testId = ObjectId("6565dc3b7b7ea8ca4c42ffce")
+
+    tilenumber = 'tiles.'+str(unit['tile'])
+    print('tilenumber: ', tilenumber)
+
+    # endTile = mycol.find_one({"_id": ObjectId(endTileID)})
+    # endTile = mycol.find_one({"tiles._id": ObjectId("65afdeb6d5431a537eeb1f86")})
+    endTile = mycol.find_one({}, {tilenumber: 1})
+    print('END TILE: ', endTile)
+    # ea = unit['a']
+    # eb = unit['b']
+    # ec = unit['c']
+
+    print('start tile: ', startTile)
+    # print('start a: ', sa)
+    # print('start b: ', sb)
+    # print('start c: ', sc)
+    print('end tile ID: ', endTileID)
+    print('end a: ', ea)
+    print('end b: ', eb)
+    print('end c: ', ec)
+
+    mycol.update_one({"units._id": ObjectId(unitID)}, { "$set": {"tile": ObjectId(tile)}})
     # mycol.update_one({"_id": ObjectId("6563a25e89b2fbac2dff7a15")}, { "$set": {"type": "test"}})
     # mycol.update_one({ "_id": ObjectId(unitID) }, { "$set": {"units.$.tile":  tile}})
     
@@ -432,6 +453,11 @@ def moveUnit():
     client.close()
     # print(unit)
     return({"some": "data"}, 200)
+
+#takes start tile a,b,c and end tile a,b,c
+def moveCost(sa, sb, sc, ea, eb, ec):
+
+    return
 
 #@app.route("/")
 #def hello_world():
@@ -483,7 +509,7 @@ def newturn(gameID):
     mycol.update_one({"_id": ObjectId("6565dc3b7b7ea8ca4c42ffd0")}, { "$set": {"turn": turn}})
     #update all units used movement to 0 - not working yet
     mycol.update_many({}, { "$set": {"units.$[].usedmovepoints": 0}})
-    mycol.update_many({}, { "$set": {"units.$[].movepoints": 2}})
+    # mycol.update_many({}, { "$set": {"units.$[].movepoints": 2}})
     # mycol.update_many({}, { "$set": {"units.$.usedmovepoints": ObjectId(tile)}})
 
 

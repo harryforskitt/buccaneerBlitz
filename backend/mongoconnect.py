@@ -17,6 +17,7 @@ client = pymongo.MongoClient(CONNECTION_STRING)
 
 mydb = client['society']
 mycol = mydb['games']
+mydata = mycol['_id']
 
 #insert
 # new_game = {"_id": "4", "name": "harry's fourth test game"}
@@ -28,9 +29,13 @@ mycol = mydb['games']
 #udpate all units in one game:
 
 
-for i in mycol.find():
-    if i['_id'] == ObjectId("6565dc3b7b7ea8ca4c42ffd0"):
-        print(i['units'])
+# for i in mycol.find():
+#     if i['_id'] == ObjectId("6565dc3b7b7ea8ca4c42ffd0"):
+#         print(i['units'])
+
+tilenumber = 'tiles.'+'0'
+# endTile = mycol.find_one({"tiles._id": ObjectId("65b276857464b78484fb7443")}, {"$.tiles._id": 1})
+# print('END TILE: ', endTile)
 
 
     # 6565dc3b7b7ea8ca4c42ffd0
@@ -39,23 +44,43 @@ for i in mycol.find():
 # mycol.delete_many({})
 
 # select unit by ID
-# unitCursor = mycol.aggregate([{"$match": {"units._id": ObjectId("655fbf67c57836915cf8acbb")}},
+# unitCursor = mycol.aggregate([{"$match": {"tiles.$._id": ObjectId("65b276857464b78484fb7443")}},
 #         {"$project": {
 #             "units": {
 #                 "$filter": {
-#                     "input": "$units",
-#                     "as": "unit",
-#                     "cond": {"$eq": ["$$unit._id", ObjectId("655fbf67c57836915cf8acbb")]}
+#                     "input": "$tiles",
+#                     "as": "tiles",
+#                     "cond": {"$eq": ["$$tiles._id", ObjectId("65b276857464b78484fb7443")]}
 #                 }
 #             }
 #         }}
 #         ])
 # for i in unitCursor:
-#     unit = i
+#     tile = i
+#     print(tile)
 #     break
-# print(unit)
+# print(tile)
 
-#select
+unitCursor = mycol.aggregate([{"$match": {"tiles._id": ObjectId("65b276857464b78484fb7443")}},
+        {"$project": {
+            "tiles": {
+                "$filter": {
+                    "input": "$tiles",
+                    "as": "tile",
+                    "cond": {"$eq": ["$$tile._id", ObjectId("65b276857464b78484fb7443")]}
+                }
+            }
+        }}
+        ])
+print('found')
+for i in unitCursor:
+    print('i in unitCursor: ', i)
+    units = i['tiles']
+    unit = units[0]
+    print('unit: ', unit)
+    break
+
+# #select
 
 
 # udpate unit tile
@@ -115,5 +140,6 @@ for i in mycol.find():
 #read all
 # for i in mycol.find():
 #     print(i)
+
 
 client.close()
