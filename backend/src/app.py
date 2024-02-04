@@ -440,10 +440,10 @@ def moveUnit():
     # print('start a: ', sa)
     # print('start b: ', sb)
     # print('start c: ', sc)
-    print('end tile ID: ', endTileID)
-    print('end a: ', ea)
-    print('end b: ', eb)
-    print('end c: ', ec)
+    # print('end tile ID: ', endTileID)
+    # print('end a: ', ea)
+    # print('end b: ', eb)
+    # print('end c: ', ec)
 
     mycol.update_one({"units._id": ObjectId(unitID)}, { "$set": {"tile": ObjectId(tile)}})
     # mycol.update_one({"_id": ObjectId("6563a25e89b2fbac2dff7a15")}, { "$set": {"type": "test"}})
@@ -512,10 +512,10 @@ def newturn(gameID):
     # mycol.update_many({}, { "$set": {"units.$[].movepoints": 2}})
     # mycol.update_many({}, { "$set": {"units.$.usedmovepoints": ObjectId(tile)}})
 
-
-scheduler = BackgroundScheduler(job_defaults={'max_instances': 999999})
-scheduler.add_job(func=newturn, args=["6565dc3b7b7ea8ca4c42ffd0"], trigger="interval", seconds=5)
-scheduler.start()
+if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+    scheduler = BackgroundScheduler(job_defaults={'max_instances': 999999})
+    scheduler.add_job(func=newturn, args=["6565dc3b7b7ea8ca4c42ffd0"], trigger="interval", seconds=5)
+    scheduler.start()
 
 # Shut down the scheduler when exiting the app
 atexit.register(lambda: scheduler.shutdown())

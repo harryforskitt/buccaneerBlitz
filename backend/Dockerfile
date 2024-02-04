@@ -5,4 +5,5 @@ COPY src/* /app/src
 RUN pip install -r requirements.txt
 EXPOSE 5000
 #use no reload to get aspscheduler to work
-CMD flask run --debug --host 0.0.0.0 --no-reload
+#CMD flask run --debug --host 0.0.0.0 --no-reload
+CMD flask run --debug --host 0.0.0.0
