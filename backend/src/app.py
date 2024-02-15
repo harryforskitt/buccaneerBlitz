@@ -355,21 +355,17 @@ def createUnit(tile, player, type, movepoints):
 def moveUnit():
     print(request)
     json = request.get_json()
-    print('unitID: ', json.get('unitID'))
+    print('json received: ', json)
     unitID = json.get('unitID')
     # unitID = ObjectId("6565dc3b7b7ea8ca4c42ffce")
-    print('unit id from json: ', unitID)
     tile = json.get('tile')
     print('tile to move to: ', tile)
     client = pymongo.MongoClient(CONNECTION_STRING)
 
     mydb = client['society']
     mycol = mydb['games']
-    print('trying to find')
     print(unitID)
 
-    print('unitID: ', unitID)
-    print('ObjectId(unitID): ', ObjectId(unitID))
     # unit = mycol.find_one({'$elemMatch': { "units._id": ObjectId("655fbf67c57836915cf8acbb")}, "units.player":  "harry"},{"units": 1})
     # unit = mycol.find_one({"tags": ObjectId("655f7b39b8ca04514dd5c427")},{})
     # unit = mycol.find({},{"units"})
@@ -385,19 +381,10 @@ def moveUnit():
             }
         }}
         ])
-    # index = mycol.aggregate({"$indexOfArray:": [["$units"], [ObjectId(unitID)]] })
-    item = {
-			"_id" : ObjectId("6563a25e89b2fbac2dff7a15"),
-			"tile" : 21,
-			"player" : "harry",
-			"type" : "scout"
-		}
-    print('found')
     for i in unitCursor:
-        print('i in unitCursor: ', i)
         units = i['units']
         unit = units[0]
-        print('unit: ', unit)
+        print('unit before move: ', unit)
         startTile = units[0]['tile']
         break
     indexCursor = mycol.match.aggregate([
@@ -407,7 +394,7 @@ def moveUnit():
         "$units",
         {
 			"_id" : ObjectId("65636a6d37d1af4136d28d14"),
-			"tile" : 21,
+			"tile" : 27,
 			"player" : "harry",
 			"type" : "scout"
 		}
@@ -415,28 +402,16 @@ def moveUnit():
     }
     }}
     ])
-    print('index cursor: ', indexCursor)
-    for i in indexCursor:
-        print('i in indexCursor')
-        print('index: ', i)
-    print('printed index')
-    print('original unit: ', unit)
-    unit.update({'tile': tile})
-    print('new unit: ', unit)
-    # testId = ObjectId("6565dc3b7b7ea8ca4c42ffce")
-
-    tilenumber = 'tiles.'+str(unit['tile'])
-    print('tilenumber: ', tilenumber)
 
     # endTile = mycol.find_one({"_id": ObjectId(endTileID)})
     # endTile = mycol.find_one({"tiles._id": ObjectId("65afdeb6d5431a537eeb1f86")})
-    endTile = mycol.find_one({}, {tilenumber: 1})
-    print('END TILE: ', endTile)
+    # endTile = mycol.find_one({}, {tilenumber: 1})
+    # print('END TILE: ', endTile)
     # ea = unit['a']
     # eb = unit['b']
     # ec = unit['c']
 
-    print('start tile: ', startTile)
+    # print('start tile: ', startTile)
     # print('start a: ', sa)
     # print('start b: ', sb)
     # print('start c: ', sc)
@@ -445,7 +420,67 @@ def moveUnit():
     # print('end b: ', eb)
     # print('end c: ', ec)
 
-    mycol.update_one({"units._id": ObjectId(unitID)}, { "$set": {"tile": ObjectId(tile)}})
+    try:
+        # Use ping method to check the connection
+        client.server_info()
+        print("Connected to MongoDB server successfully.")
+    except Exception as e:
+        print("Failed to connect to MongoDB server:", e)
+
+    # Specify the _id of the document you want to check
+    document_id = ObjectId("65afdeb6d5431a537eeb1fb4")  # Example _id
+
+    # Query the collection to check if the document exists
+    result2 = mycol.find_one({"units._id": document_id})
+
+    if result2:
+        print("Document exists.")
+    else:
+        print("Document does not exist.")
+
+    try:
+        # Define the filter to match the document by its ID and the specific unit within the array
+        filter_query = {"_id": ObjectId("65afdeb6d5431a537eeb1fb9"), "units._id": ObjectId("65afdeb6d5431a537eeb1fb4")}
+
+        # Define the update operation
+        update_operation = {"$set": {"units.$.tile": ObjectId(str(json['tile']))}}
+
+        # Execute the update operation
+        result = mycol.update_one(filter_query, update_operation)
+
+        # result = mycol.update_one({"_id": ObjectId("65afdeb6d5431a537eeb1fb4")}, { "$set": {"units._id": ObjectId(str(json['tile']))}})
+        if result.modified_count == 1:
+            print("Tile value updated successfully.")
+        else:
+            print("No document found to update or update operation failed.")
+    except Exception as e:
+        print("An error occurred:", e)
+    #This should use the actual number of moves used, but I've hardcoded it to 2 for now
+    mycol.update_one({"units._id": ObjectId(unitID)}, { "$set": {"movepointsleft": '0'}})
+    mycol.update_one({"units._id": ObjectId(unitID)}, { "$set": {"usedmovepoints": 2}})
+
+    unitCursor = mycol.aggregate([{"$match": {"units._id": ObjectId(unitID)}},
+            {"$project": {
+                "units": {
+                    "$filter": {
+                        "input": "$units",
+                        "as": "unit",
+                        "cond": {"$eq": ["$$unit._id", ObjectId(unitID)]}
+                    }
+                }
+            }}
+            ])
+    for i in unitCursor:
+        units = i['units']
+        unit = units[0]
+        print('unit after move: ', unit)
+        startTile = units[0]['tile']
+        break
+
+
+
+
+
     # mycol.update_one({"_id": ObjectId("6563a25e89b2fbac2dff7a15")}, { "$set": {"type": "test"}})
     # mycol.update_one({ "_id": ObjectId(unitID) }, { "$set": {"units.$.tile":  tile}})
     
