@@ -387,21 +387,6 @@ def moveUnit():
         print('unit before move: ', unit)
         startTile = units[0]['tile']
         break
-    indexCursor = mycol.match.aggregate([
-    { "$project": {
-    "index": {
-        "$indexOfArray": [
-        "$units",
-        {
-			"_id" : ObjectId("65636a6d37d1af4136d28d14"),
-			"tile" : 27,
-			"player" : "harry",
-			"type" : "scout"
-		}
-        ]
-    }
-    }}
-    ])
 
     # endTile = mycol.find_one({"_id": ObjectId(endTileID)})
     # endTile = mycol.find_one({"tiles._id": ObjectId("65afdeb6d5431a537eeb1f86")})
@@ -421,26 +406,8 @@ def moveUnit():
     # print('end c: ', ec)
 
     try:
-        # Use ping method to check the connection
-        client.server_info()
-        print("Connected to MongoDB server successfully.")
-    except Exception as e:
-        print("Failed to connect to MongoDB server:", e)
-
-    # Specify the _id of the document you want to check
-    document_id = ObjectId("65afdeb6d5431a537eeb1fb4")  # Example _id
-
-    # Query the collection to check if the document exists
-    result2 = mycol.find_one({"units._id": document_id})
-
-    if result2:
-        print("Document exists.")
-    else:
-        print("Document does not exist.")
-
-    try:
         # Define the filter to match the document by its ID and the specific unit within the array
-        filter_query = {"_id": ObjectId("65afdeb6d5431a537eeb1fb9"), "units._id": ObjectId("65afdeb6d5431a537eeb1fb4")}
+        filter_query = {"units._id": ObjectId(json['unitID'])}
 
         # Define the update operation
         update_operation = {"$set": {"units.$.tile": ObjectId(str(json['tile']))}}
