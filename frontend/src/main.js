@@ -7,6 +7,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { MapControls } from 'three/addons/controls/MapControls.js';
 import { FlyControls } from 'three/addons/controls/FlyControls.js';
 
+
 var JWT = localStorage.getItem('JWT');
 // console.log(JWT);
 
@@ -39,6 +40,17 @@ const cities = [];
 var highlighted = [];
 
 var selected;
+
+// var socket = io();
+// socket.on('connect', function(){
+//   console.log('connecting');
+//   socket.send('a');
+// })
+// socket.on('message', function(msg){
+//   console.log(msg);
+//   socket.send('a');
+// })
+
 
 const getJWT = async (username, password) => {
   const data = {

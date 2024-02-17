@@ -14,7 +14,7 @@ from jwt import decode
 import datetime
 from functools import wraps
 
-from celery import Celery
+from flask_socketio import SocketIO, emit
 
 #Database dependencies:
 
@@ -32,11 +32,24 @@ def parse_json(data):
     return json.loads(json_util.dumps(data))
 
 app = Flask(__name__)
-cors = CORS(app)
+CORS(app, origins='*')
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['SECRET_KEY'] = 'thisisthesecretkey'
 
-simple_app = Celery('simple_worker', broker='redis://redis:6379/0', backend='redis://redis:6379/0')
+# # Define a function to add CORS headers to every response
+# def add_cors_headers(response):
+#     # Replace '*' with the origin that you want to allow, or use request.headers.get('Origin') to echo the request origin
+#     response.headers['Access-Control-Allow-Origin'] = 'http://localhost:5173'
+#     response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+#     response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+#     return response
+
+# # Register the add_cors_headers function to be called after each request
+# app.after_request(add_cors_headers)
+
+socket = SocketIO(app, cors_allowed_origins="*")
+somelist = ["apple", "peas", "juice", "orange"]
+f = 0
 
 CONNECTION_STRING = os.environ.get("COSMOS_CONNECTION_STRING")
 
@@ -158,6 +171,24 @@ def unit_match(f):
 def getTokenData(token):
     data = jwt.decode(token, 'thisisthesecretkey', algorithms=["HS256"])
     return(data)
+
+@socket.on('connect')
+def handle_connect():
+    print('Client connected')
+    emit('message', 'Hello from server!')
+
+@socket.on('disconnect')
+def handle_disconnect():
+    print('Client disconnected')
+
+@socket.on("message")
+def handle_message(msg):
+    print(msg)
+    # emit('message', 'message')
+    global f
+    if f < len(somelist):
+        socket.emit('message', somelist[f])
+        f = f+1
 
 #This route returns the username from the JWT
 @app.route('/getUsername', methods=['GET'])
@@ -457,6 +488,9 @@ def moveUnit():
     
         
     client.close()
+
+    socket.emit('message', 'moveunit')
+
     # print(unit)
     return({"some": "data"}, 200)
 

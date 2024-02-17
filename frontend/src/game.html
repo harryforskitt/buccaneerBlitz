@@ -1,29 +1,31 @@
 <!DOCTYPE html>
-<html>
-	<head lang="en">
-		<meta charset="utf-8">
-		<title>My first three.js app</title>
-		<style>
-			body { margin: 0; }
-		</style>
-		<link rel="stylesheet" type="text/css" href="styles.css" />
-	</head>
-	<body>
-		<div id="test">
-			<a href="index.html">menu</a><br>
-			<!--
-			<label for="username">Username:</label>
-			<input type="text" id="username">
-			<br>
-			<label for="password">Password:</label>
-			<input type="password" id="password">
-			<br>
-			<button id="login">Login</button>
-			<br>
-			-->
-			<button id="createCity">Build City</button>
-			<button id="moveUnit">Move Unit</button>
-		</div>
-		<script type="module" src="/main.js"></script>
-	</body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My first three.js app</title>
+    <style>
+        body { margin: 0; }
+    </style>
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+</head>
+<body>
+    <div id="test">
+        <a href="index.html">menu</a><br>
+        <button id="createCity">Build City</button>
+        <button id="moveUnit">Move Unit</button>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+    <script>
+        var socket = io('http://127.0.0.1:5000/');
+        socket.on('connect', function() {
+            console.log('Connected to server');
+            socket.emit('message', 'Hello from client!');
+        });
+		socket.on('message', function(msg){
+			console.log(msg)
+			socket.emit('message', 'a')
+		})
+    </script>
+    <script type="module" src="/main.js"></script>
+</body>
 </html>
