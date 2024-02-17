@@ -89,7 +89,7 @@ def user_match(f):
         print('printed playersQuery')
 
         players = playersQuery[0]['players']
-        print (players)
+        print(players)
 
         if username not in players:
             message = str('user ' + username + ' is not in game ' + gameID)
@@ -405,6 +405,10 @@ def moveUnit():
     # print('end b: ', eb)
     # print('end c: ', ec)
 
+    validmove = validateMove(json['unitID'], json['tile'])
+    if validmove == False:
+        return({"error": "invalid move (not enough movement?)"}, 400)
+
     try:
         # Define the filter to match the document by its ID and the specific unit within the array
         filter_query = {"units._id": ObjectId(json['unitID'])}
@@ -423,8 +427,8 @@ def moveUnit():
     except Exception as e:
         print("An error occurred:", e)
     #This should use the actual number of moves used, but I've hardcoded it to 2 for now
-    mycol.update_one({"units._id": ObjectId(unitID)}, { "$set": {"movepointsleft": '0'}})
-    mycol.update_one({"units._id": ObjectId(unitID)}, { "$set": {"usedmovepoints": 2}})
+    mycol.update_one({"units._id": ObjectId(json['unitID'])}, { "$set": {"units.$.movepointsleft": '0'}})
+    mycol.update_one({"units._id": ObjectId(json['unitID'])}, { "$set": {"units.$.usedmovepoints": 2}})
 
     unitCursor = mycol.aggregate([{"$match": {"units._id": ObjectId(unitID)}},
             {"$project": {
@@ -456,10 +460,94 @@ def moveUnit():
     # print(unit)
     return({"some": "data"}, 200)
 
-#takes start tile a,b,c and end tile a,b,c
-def moveCost(sa, sb, sc, ea, eb, ec):
+def validateMove(unitID, tileID):
+    client = pymongo.MongoClient(CONNECTION_STRING)
+    mydb = client['society']
+    mycol = mydb['games']
 
-    return
+
+
+    result = mycol.find_one({"units._id": ObjectId(unitID)}) 
+    tiles = [tile for _, tile in result["tiles"].items()]
+    print('tiles: ', tiles)
+
+    tiles_number = int(len(tiles))
+    print('tilesnumber: ', tiles_number)
+
+    tile = next((tile for tile in tiles if tile['_id'] == ObjectId(tileID)), None)
+    print('tile: ', tile)
+
+    # get unit
+    unitCursor = mycol.aggregate([{"$match": {"units._id": ObjectId(unitID)}},
+        {"$project": {
+            "units": {
+                "$filter": {
+                    "input": "$units",
+                    "as": "unit",
+                    "cond": {"$eq": ["$$unit._id", ObjectId(unitID)]}
+                }
+            }
+        }}
+        ])
+    client.close()
+    for i in unitCursor:
+        units = i['units']
+        unit = units[0]
+        print('unit after move: ', unit)
+        startTile = units[0]['tile']
+        break
+
+
+    unit['a'] = tile['a']
+    unit['b'] = tile['b']
+    unit['c'] = tile['c']
+    print('unit: ', unit)
+
+    moverange = int(unit['movepoints'] - int(unit['usedmovepoints']))
+    print('range (movepointsleft): ', moverange)
+
+    validMoves = get_moves(unit, moverange, tiles, tiles_number)
+    print('validMoves: ', validMoves)
+    valid = False
+    unittileID = unit['tile']
+    print('unittileID: ', unittileID)
+    for i in range(0, len(validMoves)):
+        print('move: ', validMoves[i]['_id'])
+        
+        if str(validMoves[i]['_id']) == str(unittileID):
+            valid = True
+            print('move is valid')
+            return(True)
+    if valid == False:
+        print('move is invalid')
+        return(False)
+    
+
+def get_moves(unit, moverange, tiles, tiles_number):
+    a = unit['a']
+    lba = a - moverange
+    uba = a + moverange
+
+    b = unit['b']
+    lbb = b - moverange
+    ubb = b + moverange
+
+    c = unit['c']
+    lbc = c - moverange
+    ubc = c + moverange
+
+    moves = []
+    print('tiles_number ', tiles_number)
+    for i in range(0, int(tiles_number)):
+        testa = tiles[i]['a']
+        testb = tiles[i]['b']
+        testc = tiles[i]['c']
+        # Assuming 'scene.getObjectByProperty' is a function that returns a tile object
+        # tile = scene.getObjectByProperty('_id', tiles[i])
+        if (lba <= testa <= uba) and (lbb <= testb <= ubb) and (lbc <= testc <= ubc):
+            moves.append(tiles[i])
+
+    return moves
 
 #@app.route("/")
 #def hello_world():
@@ -516,7 +604,7 @@ def newturn(gameID):
 
 if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
     scheduler = BackgroundScheduler(job_defaults={'max_instances': 999999})
-    scheduler.add_job(func=newturn, args=["6565dc3b7b7ea8ca4c42ffd0"], trigger="interval", seconds=5)
+    scheduler.add_job(func=newturn, args=["6565dc3b7b7ea8ca4c42ffd0"], trigger="interval", seconds=30)
     scheduler.start()
 
 # Shut down the scheduler when exiting the app
