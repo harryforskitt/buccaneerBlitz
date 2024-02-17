@@ -41,16 +41,22 @@ var highlighted = [];
 
 var selected;
 
-// var socket = io();
-// socket.on('connect', function(){
-//   console.log('connecting');
-//   socket.send('a');
-// })
-// socket.on('message', function(msg){
-//   console.log(msg);
-//   socket.send('a');
-// })
+// Connect to the server using Socket.IO
+var socket = io('http://127.0.0.1:5000/');
 
+// Handle the 'connect' event
+socket.on('connect', function() {
+    console.log('Connected to server');
+    // Emit a message to the server
+    socket.emit('message', 'Hello from client!');
+});
+
+// Handle the 'message' event from the server
+socket.on('message', function(msg){
+    console.log(msg);
+    // Emit a message back to the server (just an example)
+    socket.emit('message', 'a');
+});
 
 const getJWT = async (username, password) => {
   const data = {
