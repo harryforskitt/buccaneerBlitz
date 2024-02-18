@@ -489,7 +489,8 @@ def moveUnit():
         
     client.close()
 
-    socket.emit('message', 'moveunit')
+    # socket.emit('message', 'unit moved')
+    socket.emit('moveunit', json)
 
     # print(unit)
     return({"some": "data"}, 200)

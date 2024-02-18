@@ -58,6 +58,22 @@ socket.on('message', function(msg){
     socket.emit('message', 'a');
 });
 
+socket.on('moveunit', function(msg){
+  console.log(msg);
+  console.log('msg.tile:', msg.tile);
+  var unit = scene.getObjectByProperty('_id', (msg.unitID));
+  var tile = scene.getObjectByProperty('_id', (msg.tile));
+  console.log('unit', unit)
+  console.log('tile', tile)
+  unit.a = tile.a;
+  unit.b = tile.b;
+  unit.c = tile.c;
+  unit.position.setX(tile.position.x);
+  // currentSelected.position.setY(targetTileObject.position.y);
+  unit.position.setZ(tile.position.z);
+  socket.emit('message', 'a');
+});
+
 const getJWT = async (username, password) => {
   const data = {
     'username' : username,
@@ -94,8 +110,9 @@ document.getElementById("moveUnit").onclick = async() => {
   .then((response) => {
     console.log('response in onclick: ', response);
     if (response === 200) {
-      //This deletes everythign and re-renders the game (very inneficient but easier for now)
+
     unrenderUnit(units[0]);
+    //This deletes everythign and re-renders the game (very inneficient but easier for now)
     // scene.remove.apply(scene, scene.children);
     // renderGame();
   };

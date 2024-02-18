@@ -15,9 +15,21 @@ CONNECTION_STRING = os.environ.get("COSMOS_CONNECTION_STRING")
 print("Connection string: ", CONNECTION_STRING)
 client = pymongo.MongoClient(CONNECTION_STRING)
 
+# make sure you change this to use the right collection (users/games)
 mydb = client['society']
-mycol = mydb['games']
+mycol = mydb['users']
 mydata = mycol['_id']
+
+# add new uesr
+new_user = {
+    "_id": "1",
+    "username": "a",
+    "password": "password"
+}
+
+# Insert the new user document into the collection
+mycol.insert_one(new_user)
+
 
 #insert
 # new_game = {"_id": "4", "name": "harry's fourth test game"}
@@ -33,7 +45,7 @@ mydata = mycol['_id']
 #     if i['_id'] == ObjectId("6565dc3b7b7ea8ca4c42ffd0"):
 #         print(i['units'])
 
-tilenumber = 'tiles.'+'0'
+# tilenumber = 'tiles.'+'0'
 # endTile = mycol.find_one({"tiles._id": ObjectId("65b276857464b78484fb7443")}, {"$.tiles._id": 1})
 # print('END TILE: ', endTile)
 
@@ -61,24 +73,24 @@ tilenumber = 'tiles.'+'0'
 #     break
 # print(tile)
 
-unitCursor = mycol.aggregate([{"$match": {"tiles._id": ObjectId("65b276857464b78484fb7443")}},
-        {"$project": {
-            "tiles": {
-                "$filter": {
-                    "input": "$tiles",
-                    "as": "tile",
-                    "cond": {"$eq": ["$$tile._id", ObjectId("65b276857464b78484fb7443")]}
-                }
-            }
-        }}
-        ])
-print('found')
-for i in unitCursor:
-    print('i in unitCursor: ', i)
-    units = i['tiles']
-    unit = units[0]
-    print('unit: ', unit)
-    break
+# unitCursor = mycol.aggregate([{"$match": {"tiles._id": ObjectId("65b276857464b78484fb7443")}},
+#         {"$project": {
+#             "tiles": {
+#                 "$filter": {
+#                     "input": "$tiles",
+#                     "as": "tile",
+#                     "cond": {"$eq": ["$$tile._id", ObjectId("65b276857464b78484fb7443")]}
+#                 }
+#             }
+#         }}
+#         ])
+# print('found')
+# for i in unitCursor:
+#     print('i in unitCursor: ', i)
+#     units = i['tiles']
+#     unit = units[0]
+#     print('unit: ', unit)
+#     break
 
 # #select
 
