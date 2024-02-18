@@ -314,6 +314,7 @@ def create_game():
     colorRota = [0xff0000, 0x00ff00, 0x0000ff, 0xff0000, 0x00ff00, 0x0000ff]
     id = "0"
     k = 0
+    turn = 0
 
     for i in range(0, 10):
         for j in range(0, 10):
@@ -359,12 +360,17 @@ def create_game():
     mycol = mydb['games']
 
     #insert
-    new_game = {"name": name, "tiles": tiles, "players": players, "units": units}
+    new_game = {"name": name, "tiles": tiles, "players": players, "units": units, "turn": turn}
     mycol.insert_one(new_game)
 
     client.close()
     print('new game units: ', new_game['units'])
+
     response = flask.jsonify(game)
+
+
+    scheduler.add_job(func=newturn, args=[new_game['_id']], trigger="interval", seconds=10)
+    scheduler.start()
     return response
 
 def createUnit(tile, player, type, movepoints, hp, attackdistance, attackdamage, maxattacks):
@@ -594,29 +600,6 @@ def get_moves(unit, moverange, tiles, tiles_number):
 #def hello_world():
     #return "<p>Hello, World!</p>"
 
-@app.route('/simple_start_task')
-def call_method():
-    app.logger.info("Invoking Method ")
-    #                        queue name in task folder.function name
-    r = simple_app.send_task('tasks.longtime_add', kwargs={'x': 1, 'y': 2})
-    app.logger.info(r.backend)
-    return r.id
-
-
-@app.route('/simple_task_status/<task_id>')
-def get_status(task_id):
-    status = simple_app.AsyncResult(task_id, app=simple_app)
-    print("Invoking Method ")
-    return "Status of the Task " + str(status.state)
-
-
-@app.route('/simple_task_result/<task_id>')
-def task_result(task_id):
-    result = simple_app.AsyncResult(task_id).result
-    return "Result of the Task " + str(result)
-
-print(call_method)
-
 import time
 import atexit
 
@@ -632,12 +615,12 @@ def newturn(gameID):
     mydb = client['society']
     mycol = mydb['games']
 
-    turn = mycol.find_one({"_id": ObjectId("6565dc3b7b7ea8ca4c42ffd0")}, {'turn': 1})
+    turn = mycol.find_one({"_id": ObjectId(gameID)}, {'turn': 1})
     turn = turn['turn']
     turn = int(turn) + 1
     print('turn ', turn)
 
-    mycol.update_one({"_id": ObjectId("6565dc3b7b7ea8ca4c42ffd0")}, { "$set": {"turn": turn}})
+    mycol.update_one({"_id": ObjectId(gameID)}, { "$set": {"turn": turn}})
     #update all units used movement to 0 - not working yet
     mycol.update_many({}, { "$set": {"units.$[].usedmovepoints": 0}})
     # mycol.update_many({}, { "$set": {"units.$[].movepoints": 2}})
@@ -645,8 +628,7 @@ def newturn(gameID):
 
 if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
     scheduler = BackgroundScheduler(job_defaults={'max_instances': 999999})
-    scheduler.add_job(func=newturn, args=["6565dc3b7b7ea8ca4c42ffd0"], trigger="interval", seconds=30)
-    scheduler.start()
+    
 
 # Shut down the scheduler when exiting the app
 atexit.register(lambda: scheduler.shutdown())
