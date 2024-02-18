@@ -9,13 +9,8 @@ import { FlyControls } from 'three/addons/controls/FlyControls.js';
 
 
 var JWT = localStorage.getItem('JWT');
-// console.log(JWT);
-
-//game without harry in: 655f41cb4c063e738be5bd16
-//game with harry in: 655f41764c063e738be5bd02
-
-//change this to read from local storage to get the game the user selected
-const gameID = '65afdeb6d5431a537eeb1fb9';
+var gameID = localStorage.getItem('game')
+console.log('game value from local Storage: ', gameID);
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(

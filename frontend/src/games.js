@@ -20,11 +20,21 @@ const listGames = async () => {
       // console.log("Success: ", result);
       // console.log('result length: ', result.length);
       gamesList.innerHTML = "";
+      
       for (let i = 0; i < result.length; i++) {
         const li = document.createElement('li');
         // console.log(result[i].name);
         //const game = document.createTextNode(result[i].name);
         // console.log(result[i].players);
+        var button = document.createElement('button');
+        button.innerHTML = 'Play';
+        button.setAttribute('id', result[i]._id['$oid']);
+        button.onclick = function() {
+          localStorage.setItem('game', this.id);
+          console.log('game value from local Storage: ', localStorage.getItem('game'));
+          window.location.href = 'http://localhost:5173/game.html';
+        };
+        li.appendChild(button);
         li.appendChild(document.createTextNode(result[i].name + ' id: ' + result[i]._id['$oid'] + ' players: ' + result[i].players));
         gamesList.appendChild(li);
 
