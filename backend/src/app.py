@@ -343,7 +343,7 @@ def create_game():
         # startPositionString = str(startPositions[i])
         print('tile: ', tiles[startPositions[i]])
         startPosition_id = tiles[startPositions[i]]['_id']
-        unit = createUnit(startPosition_id, players[i], 'scout', 2)
+        unit = createUnit(startPosition_id, players[i], 'scout', 2, 100, 2, 20, 1)
         # units[ObjectId()] = unit
         units.append(unit)
 
@@ -367,7 +367,7 @@ def create_game():
     response = flask.jsonify(game)
     return response
 
-def createUnit(tile, player, type, movepoints):
+def createUnit(tile, player, type, movepoints, hp, attackdistance, attackdamage, maxattacks):
     unit = {}
     unit['tile'] = tile
     unit['player'] = player
@@ -375,6 +375,12 @@ def createUnit(tile, player, type, movepoints):
     unit['_id'] = ObjectId()
     unit['movepoints'] = movepoints
     unit['usedmovepoints'] = 0
+    unit['maxhp'] = hp
+    unit['hp'] = hp
+    unit['attackdistance'] = attackdistance
+    unit['attackdamage'] = attackdamage
+    unit['maxattacks'] = maxattacks
+    unit['usedattacks'] = 0
     return(unit)
 
 
