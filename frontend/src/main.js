@@ -53,6 +53,29 @@ socket.on('message', function(msg){
     socket.emit('message', 'a');
 });
 
+// Listen for the 'unitDamaged' event from the server
+socket.on('unitDamaged', function(data){
+  console.log('Unit Damaged:', JSON.stringify(data));
+  console.log('data.unit_id:', data.unit_id);
+  // Update the health of the unit in the frontend
+  updateUnitHealth(data.unit_id, data.damage);
+});
+
+// Function to update the health of a unit in the frontend
+function updateUnitHealth(unitID, damage) {
+  console.log('unitID', unitID)
+  // Find the unit in the frontend scene by its ID
+  var unit = scene.getObjectByProperty('_id', unitID);
+  if (unit) {
+      // Update the unit's health
+      unit.hp = unit.hp - damage;
+      // You may want to update the visual representation of the unit's health here
+      console.log('Unit Health Updated:', unitID, unit.hp);
+  } else {
+      console.log('Unit not found:', unitID);
+  }
+}
+
 socket.on('moveunit', function(msg){
   console.log(msg);
   console.log('msg.tile:', msg.tile);
@@ -64,9 +87,13 @@ socket.on('moveunit', function(msg){
   unit.b = tile.b;
   unit.c = tile.c;
   unit.position.setX(tile.position.x);
-  // currentSelected.position.setY(targetTileObject.position.y);
   unit.position.setZ(tile.position.z);
-  socket.emit('message', 'a');
+
+  // Check if the moved unit is the currently selected unit
+  if (selected && unit._id === selected._id) {
+    // unhighlight
+    unhighlight(highlighted);
+  }
 });
 
 const getJWT = async (username, password) => {
@@ -122,7 +149,7 @@ const moveUnit = async (unitID, tile) => {
     "unitID": unitID,
     "tile": tile
   };
-
+  console.log('gameID in moveUnit function: ', gameID)
   const response = await fetch('http://127.0.0.1:5000/moveUnit',{
     method: "POST",
     headers: {
@@ -460,79 +487,87 @@ const onMouseClick = (event) => {
 
 window.addEventListener("click", onMouseClick);
 
+// Function to get the ID of the unit from the specified tile object
+const getUnitIDFromTile = (tileObject) => {
+  // Iterate through the units array
+  for (let i = 0; i < units.length; i++) {
+    const unit = units[i];
+    // Check if the unit is located on the specified tile
+    if (unit.a === tileObject.a && unit.b === tileObject.b && unit.c === tileObject.c) {
+      // Return the ID of the unit
+      return unit._id;
+    }
+  }
+  // If no unit is found on the specified tile, return null or handle appropriately
+  return null;
+};
+
 const onRightClick = (event) => {
   if (overlaid == true) {
     return;
   }
+
+  // Get the currently selected unit
   const currentSelected = selected;
 
+  // Unhighlight any previously highlighted tiles
   unhighlight(highlighted);
 
+  // Calculate the mouse pointer position
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
+  // Cast a ray from the camera to detect intersections with objects in the scene
   raycaster.setFromCamera(pointer, camera);
   const intersects = raycaster.intersectObjects(scene.children);
 
   if (intersects.length > 0) {
-    //console.log('man: ' + man.name);
-    if (currentSelected.objectType == "unit") {
-      const targetTileObject = intersects[0]['object'];
-      console.log('target tile object: ', targetTileObject);
-      const targetPosition = intersects[0]['object']['_id'];
-      console.log('move target tile _id: ', targetPosition);
-      const unitID = currentSelected._id;
-      console.log('unit._id: ', unitID);
-      console.log('move target tile _id: ', unitID);
-      //Get position of right clicked tile
-      // var targetPosition = intersects[0].object.position;
+    // Check if the currently selected object is a unit
+    if (currentSelected && currentSelected.objectType === 'unit') {
+      const targetTileObject = intersects[0].object;
+      const targetTileID = targetTileObject._id;
 
-      const response = moveUnit(unitID, targetPosition)
-      .then((response) => {
-        console.log('response in onclick: ', response);
-        if (response === 200) {
-          //This deletes everything and re-renders the game (very inneficient but easier for now)
-        console.log('highlighted before re-rendering: ', highlighted);
-        currentSelected.a = targetTileObject.a;
-        currentSelected.b = targetTileObject.b;
-        currentSelected.c = targetTileObject.c;
-        currentSelected.position.setX(targetTileObject.position.x);
-        // currentSelected.position.setY(targetTileObject.position.y);
-        currentSelected.position.setZ(targetTileObject.position.z);
-        unhighlight(highlighted);
-        // currentSelected.position.x = targetTileObject.x;
-        // currentSelected.position.y = targetTileObject.y;
-        // currentSelected.position.z = targetTileObject.z;
-        
-        // unrenderUnit(currentSelected);
-        // scene.remove.apply(scene, scene.children);
-        // renderGame();
-  };
-  });
+      // Check if the selected tile has a unit on it
+      const isTargetTileOccupied = units.some(unit => unit._id === targetTileID);
 
-      //Set the x and z position of the man to the right clicked tile
-
-      // currentSelected.position.x = targetPosition.x;
-      // currentSelected.position.z = targetPosition.z;
-      // currentSelected.a = intersects[0].object.a;
-      // currentSelected.b = intersects[0].object.b;
-      // currentSelected.c = intersects[0].object.c;
+      if (!isTargetTileOccupied) {
+        // If the target tile is empty, attempt to move the unit
+        const unitID = currentSelected._id;
+        moveUnit(unitID, targetTileID)
+          .then((response) => {
+            console.log('Response from moveUnit endpoint: ', response);
+            // Handle the response as needed
+          })
+          .catch((error) => {
+            console.error('Error moving unit: ', error);
+            // Handle errors
+          });
+      } else {
+        // If the target tile is occupied, attempt to attack the unit
+        const attacker_unit_ID = currentSelected._id;
+        const target_unit_ID = getUnitIDFromTile(targetTileObject);
+        attackUnit(attacker_unit_ID, target_unit_ID)
+          .then((response) => {
+            console.log('Response from attackUnit endpoint: ', response);
+            // Handle the response as needed
+          })
+          .catch((error) => {
+            console.error('Error attacking unit: ', error);
+            // Handle errors
+          });
+      }
     }
   }
+
+  // Unhighlight any previously highlighted tiles
   unhighlight(highlighted);
 
-  //this should check that selected is a tile first, but there are only tiles so far
-
+  // Highlight moveable tiles and the currently selected tile
   let moveTiles = getMoves(selected, 2);
   highlight(moveTiles, 0x00ffff);
-
   let unitTile = getMoves(selected, 0);
-  //console.log('unitTile');
-  //console.log(unitTile);
   highlight(unitTile, 0xffffff);
-
   let toHighlight = [selected._id];
-
   highlight(toHighlight, 0xff00ff);
 };
 
@@ -703,7 +738,44 @@ function onKeyDown(evt){
   
 };
 
+// Add the event listener for right-clicks
+window.addEventListener("contextmenu", onRightClick);
 
+// Function to send a request to the backend to attack a unit
+const attackUnit = async (attacker_unit_ID, defender_unit_ID) => {
+  // Prepare the data to send in the request
+  console.log('attacker_unit_ID in attackUnit function: ', attacker_unit_ID)
+  console.log('defender_unit_ID in attackUnit function: ', defender_unit_ID)
+
+  const data = {
+    
+    "attacker_unit_ID": attacker_unit_ID,
+    "defender_unit_ID": defender_unit_ID
+  };
+
+  try {
+    // Send a POST request to the backend's /attackUnit endpoint
+    const response = await fetch('http://127.0.0.1:5000/attackUnit', {
+      method: "POST",
+      headers: {
+        "gameID": gameID,
+        "Content-Type": "application/json",
+        "authorization": JWT
+      },
+      body: JSON.stringify(data)
+    });
+
+    // Parse the JSON response
+    const responseData = await response.json();
+
+    // Return the response data
+    return responseData;
+  } catch (error) {
+    // Handle any errors that occur during the fetch request
+    console.error('Error attacking unit: ', error);
+    throw error;
+  }
+};
 
 
 const controls = new OrbitControls(camera, renderer.domElement);

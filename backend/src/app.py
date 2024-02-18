@@ -25,6 +25,8 @@ from dotenv import load_dotenv
 
 import random
 
+import math
+
 #This is a helper functino to parse BSON from MongoDB to JSON
 from bson import json_util
 from bson.objectid import ObjectId
@@ -101,7 +103,9 @@ def user_match(f):
         #     print("playersQuery[i]: ", playersQuery[i])
         print('printed playersQuery')
 
-        players = playersQuery[0]['players']
+        players = []
+        if playersQuery:
+            players = playersQuery[0]['players']
         print(players)
 
         if username not in players:
@@ -111,6 +115,159 @@ def user_match(f):
         return f(*args, **kwargs)
     
     return decorated
+
+
+
+@app.route('/attackUnit', methods=['POST'])
+@token_required
+@user_match
+def attackUnit():
+    json_data = request.get_json()
+    attacker_unit_ID = json_data.get('attacker_unit_ID')
+    defender_unit_ID = json_data.get('defender_unit_ID')
+
+    client = pymongo.MongoClient(CONNECTION_STRING)
+    mydb = client['society']
+    mycol = mydb['games']
+    
+    # Fetch attacker and defender units from the database
+    attacker_unit = fetch_unit(attacker_unit_ID)
+    # attacker_unit = mycol.find_one({"units._id": ObjectId(attacker_unit_ID)}, {"units.$": 1})
+    defender_unit = fetch_unit(defender_unit_ID)
+    # defender_unit = mycol.find_one({"units._id": ObjectId(defender_unit_ID)}, {"units.$": 1})
+
+    if not attacker_unit or not defender_unit:
+        return jsonify({'message': 'Attacker or defender unit not found.'}), 404
+
+    # Extract attacker unit data
+    print('attacker_unit: ', attacker_unit)
+    attacker_tile_id = attacker_unit['tile']
+    print('attacker_tile_id: ', attacker_tile_id)
+
+    defender_tile_id = defender_unit['tile']
+
+    # Fetch the attacker unit's tile coordinates
+    # attacker_tile = mycol.find_one({"_id": ObjectId(attacker_tile_id)}, {"tiles.$": 1})
+    data = mycol.find_one({'tiles._id': ObjectId(attacker_tile_id)})
+
+    for tile in data['tiles']:
+        if tile['_id'] == attacker_tile_id:
+            attacker_tile = tile
+            break
+
+    print('attacker_tile: ', attacker_tile)
+
+    for tile in data['tiles']:
+        if tile['_id'] == defender_tile_id:
+            defender_tile = tile
+            break
+
+    print('attacker_tile: ', attacker_tile)
+
+    if not attacker_tile:
+        return jsonify({'message': 'Attacker unit tile not found.'}), 404
+
+    attacker_tile_coordinates = (int(attacker_tile['a']), int(attacker_tile['b']), int(attacker_tile['c']))
+    defender_tile_coordinates = (int(defender_tile['a']), int(defender_tile['b']), int(defender_tile['c']))
+
+    # Check if attacker unit has available attacks remaining
+    if attacker_unit['usedattacks'] >= attacker_unit['maxattacks']:
+        return jsonify({'message': 'Attacker unit has no attacks remaining.'}), 400
+
+    # Check if units are within attack distance
+    if not within_attack_distance(attacker_tile_coordinates, defender_tile_coordinates, attacker_unit['attackdistance']):
+        return jsonify({'message': 'Units are not within attack distance.'}), 400
+
+    # Deal damage to the defender
+    deal_damage(attacker_unit, defender_unit)
+
+    # Reduce health of the defender
+    reduce_health(defender_unit)
+
+    # Increment used attacks count for the attacker unit
+    attacker_unit['usedattacks'] += 1
+
+    # Update units in the database
+    mycol.update_one({"units._id": ObjectId(attacker_unit_ID)}, {"$set": {"units.$": attacker_unit}})
+    mycol.update_one({"units._id": ObjectId(defender_unit_ID)}, {"$set": {"units.$": defender_unit}})
+
+    client.close()
+
+    return jsonify({'message': 'Units attacked successfully.'}), 200
+
+
+def fetch_unit(unitID):
+    print('fetch_unit function attempting to find unit with id:', unitID)
+    # Implement logic to fetch unit from the database using unit_id
+    client = pymongo.MongoClient(CONNECTION_STRING)
+    mydb = client['society']
+    mycol = mydb['games']
+
+    unitCursor = mycol.aggregate([{"$match": {"units._id": ObjectId(unitID)}},
+        {"$project": {
+            "units": {
+                "$filter": {
+                    "input": "$units",
+                    "as": "unit",
+                    "cond": {"$eq": ["$$unit._id", ObjectId(unitID)]}
+                }
+            }
+        }}
+        ])
+    for i in unitCursor:
+        units = i['units']
+        unit = units[0]
+        print('fetched unit: ', unit)
+        startTile = units[0]['tile']
+        break
+    return(unit)
+
+    print("Unit not found in the database or missing required fields.")
+    return None
+
+
+def within_attack_distance(attacker_position, defender_position, attack_distance):
+    # print('attacker_unit: ', attacker_unit)
+    # print("int(attacker_unit[0]): ", int(attacker_unit[0]))
+    # # Implement logic to check if units are within attack distance
+    # attacker_position = (int(attacker_unit[0]), int(attacker_unit[1]), int(attacker_unit[2]))
+    # defender_position = (int(defender_unit[0]), int(defender_unit[1]), int(defender_unit[2]))
+
+    distance = calculate_distance(attacker_position, defender_position)
+
+    return distance <= attack_distance
+
+def calculate_distance(pos1, pos2):
+    print('pos1: ', pos1)
+    print('pos2: ', pos2)
+    # Calculate distance between two hexagonal positions
+    a1, b1, c1 = pos1
+    a2, b2, c2 = pos2
+    return max(abs(a1 - a2), abs(b1 - b2), abs(c1 - c2))
+
+def deal_damage(attacker_unit, defender_unit):
+    # Implement logic to calculate damage dealt by attacker to defender
+    damage = attacker_unit['attackdamage']
+    defender_unit['hp'] -= damage
+
+    # Emit an event through the WebSocket to notify other clients
+    emitData = {'unit_id': str(defender_unit['_id']), 'damage': str(damage)}
+    socket.emit('unitDamaged', emitData)
+
+def reduce_health(unit):
+    # Implement logic to reduce unit's health after being attacked
+    if unit['hp'] < 0:
+        unit['hp'] = 0
+
+def update_unit(unit):
+    # Implement logic to update unit in the database after attack
+    client = pymongo.MongoClient(CONNECTION_STRING)
+    mydb = client['society']
+    mycol = mydb['games']
+
+    mycol.update_one({"units._id": unit['_id']}, {"$set": {"units.$": unit}})
+    client.close()
+
 
 def unit_match(f):
     @wraps(f)
@@ -369,7 +526,7 @@ def create_game():
     response = flask.jsonify(game)
 
 
-    scheduler.add_job(func=newturn, args=[new_game['_id']], trigger="interval", seconds=10)
+    scheduler.add_job(func=newturn, args=[new_game['_id']], trigger="interval", seconds=1)
     
     return response
 
@@ -512,30 +669,27 @@ def validateMove(unitID, tileID):
     mydb = client['society']
     mycol = mydb['games']
 
-
-
     result = mycol.find_one({"units._id": ObjectId(unitID)}) 
-    tiles = [tile for _, tile in result["tiles"].items()]
+    tiles = result["tiles"]
     print('tiles: ', tiles)
 
-    tiles_number = int(len(tiles))
+    tiles_number = len(tiles)
     print('tilesnumber: ', tiles_number)
 
     tile = next((tile for tile in tiles if tile['_id'] == ObjectId(tileID)), None)
     print('tile: ', tile)
 
-    # get unit
     unitCursor = mycol.aggregate([{"$match": {"units._id": ObjectId(unitID)}},
-        {"$project": {
-            "units": {
-                "$filter": {
-                    "input": "$units",
-                    "as": "unit",
-                    "cond": {"$eq": ["$$unit._id", ObjectId(unitID)]}
-                }
-            }
-        }}
-        ])
+                                  {"$project": {
+                                      "units": {
+                                          "$filter": {
+                                              "input": "$units",
+                                              "as": "unit",
+                                              "cond": {"$eq": ["$$unit._id", ObjectId(unitID)]}
+                                          }
+                                      }
+                                  }}
+                                  ])
     client.close()
     for i in unitCursor:
         units = i['units']
@@ -543,7 +697,6 @@ def validateMove(unitID, tileID):
         print('unit after move: ', unit)
         startTile = units[0]['tile']
         break
-
 
     unit['a'] = tile['a']
     unit['b'] = tile['b']
@@ -560,14 +713,15 @@ def validateMove(unitID, tileID):
     print('unittileID: ', unittileID)
     for i in range(0, len(validMoves)):
         print('move: ', validMoves[i]['_id'])
-        
+
         if str(validMoves[i]['_id']) == str(unittileID):
             valid = True
             print('move is valid')
-            return(True)
+            return True
     if valid == False:
         print('move is invalid')
-        return(False)
+        return False
+
     
 
 def get_moves(unit, moverange, tiles, tiles_number):
@@ -623,6 +777,7 @@ def newturn(gameID):
     mycol.update_one({"_id": ObjectId(gameID)}, { "$set": {"turn": turn}})
     #update all units used movement to 0 - not working yet
     mycol.update_many({}, { "$set": {"units.$[].usedmovepoints": 0}})
+    mycol.update_many({}, { "$set": {"units.$[].usedattacks": 0}})
     # mycol.update_many({}, { "$set": {"units.$[].movepoints": 2}})
     # mycol.update_many({}, { "$set": {"units.$.usedmovepoints": ObjectId(tile)}})
 
