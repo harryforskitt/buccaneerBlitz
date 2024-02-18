@@ -370,7 +370,7 @@ def create_game():
 
 
     scheduler.add_job(func=newturn, args=[new_game['_id']], trigger="interval", seconds=10)
-    scheduler.start()
+    
     return response
 
 def createUnit(tile, player, type, movepoints, hp, attackdistance, attackdamage, maxattacks):
@@ -618,7 +618,7 @@ def newturn(gameID):
     turn = mycol.find_one({"_id": ObjectId(gameID)}, {'turn': 1})
     turn = turn['turn']
     turn = int(turn) + 1
-    print('turn ', turn)
+    print('game :', gameID, 'turn ', turn)
 
     mycol.update_one({"_id": ObjectId(gameID)}, { "$set": {"turn": turn}})
     #update all units used movement to 0 - not working yet
@@ -628,6 +628,7 @@ def newturn(gameID):
 
 if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
     scheduler = BackgroundScheduler(job_defaults={'max_instances': 999999})
+    scheduler.start()
     
 
 # Shut down the scheduler when exiting the app
