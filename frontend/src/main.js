@@ -326,6 +326,35 @@ const getCameraIntersects = () => {
   return raycaster.intersectObjects(scene.children);
 };
 
+// Function to display specific properties of the selected unit in the test div
+const displayUnitProperties = () => {
+    // Check if a unit is selected
+    if (selected) {
+        // Create an HTML string to display unit properties
+        let htmlContent = '<h2>Unit Properties</h2>';
+        htmlContent += '<ul>';
+        
+        // Define the properties to display
+        const propertiesToDisplay = ['a', 'b', 'c', 'name', 'player', '_id', 'tile', 'type', 'movepoints', 'hp', 'attackdistance', 'attackdamage', 'maxattacks'];
+        
+        // Iterate over the properties to display
+        propertiesToDisplay.forEach(property => {
+            // Check if the property exists in the selected unit object
+            if (selected.hasOwnProperty(property)) {
+                htmlContent += '<li><strong>' + property + ':</strong> ' + selected[property] + '</li>';
+            }
+        });
+
+        htmlContent += '</ul>';
+
+        // Update the content of the test div
+        document.getElementById('unitinfo').innerHTML = htmlContent;
+    } else {
+        // If no unit is selected, clear the content of the test div
+        document.getElementById('unitinfo').innerHTML = '';
+    }
+};
+
 //takes color as hex
 //tiles should be an array of IDs
 function highlight(tiles, color) {
@@ -402,6 +431,10 @@ const onMouseClick = (event) => {
     //change this to check that the type of the object is a unit
     // console.log('selected.objectType: ', selected.objectType);
     if (selected.objectType == "unit") {
+
+      // Call the function to initially display the specific unit properties
+      displayUnitProperties();
+
       //console.log('toHighlight:');
       //console.log(toHighlight);
       // console.log("toHighlight: ");
@@ -563,7 +596,7 @@ function renderUnits(units){
     const tile = scene.getObjectByProperty('_id', (tile_id));
     // const tile = scene.getObjectByProperty('_id', 10);
     // console.log('tile: ', tile);
-    createUnit(tile.a, tile.b, tile.c, unit.name, unit.player, unit._id, tile)
+    createUnit(tile.a, tile.b, tile.c, unit.name, unit.player, unit._id, tile, unit.type, unit.movepoints, unit.hp, unit.attackdistance, unit.attackdamage, unit.maxattacks)
   };
 };
 
@@ -582,7 +615,7 @@ function unrenderUnit(selected){
 // console.log('console log of await (getGame):', await(getGame));
 renderGame();
 
-function createUnit(a, b, c, name, player, _id, tile) {
+function createUnit(a, b, c, name, player, _id, tile, type, movepoints, hp, attackdistance, attackdamage, maxattacks) {
   // const tile = scene.getObjectByProperty('_id', getTile(a, b, c));
   // console.log('tile in create unit: ', tile);
   const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
@@ -601,6 +634,12 @@ function createUnit(a, b, c, name, player, _id, tile) {
   unit.b = b;
   unit.c = c;
   unit.startColor = unit.material.color.getHexString();
+  unit.type = type;
+  unit.movepoints = movepoints
+  unit.hp = hp
+  unit.attackdistance = attackdistance
+  unit.attackdamage = attackdamage
+  unit.maxattacks = maxattacks
   units.push(unit);
   // console.log('created unit: ', unit)
   return unit;
