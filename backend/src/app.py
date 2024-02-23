@@ -123,6 +123,9 @@ def user_match(f):
 @user_match
 def attackUnit():
     json_data = request.get_json()
+
+    gameID = request.headers.get('gameID')
+
     attacker_unit_ID = json_data.get('attacker_unit_ID')
     defender_unit_ID = json_data.get('defender_unit_ID')
 
@@ -179,10 +182,7 @@ def attackUnit():
         return jsonify({'message': 'Units are not within attack distance.'}), 400
 
     # Deal damage to the defender
-    deal_damage(attacker_unit, defender_unit)
-
-    # Reduce health of the defender
-    reduce_health(defender_unit)
+    deal_damage(gameID, attacker_unit, defender_unit)
 
     # Increment used attacks count for the attacker unit
     attacker_unit['usedattacks'] += 1
@@ -245,19 +245,22 @@ def calculate_distance(pos1, pos2):
     a2, b2, c2 = pos2
     return max(abs(a1 - a2), abs(b1 - b2), abs(c1 - c2))
 
-def deal_damage(attacker_unit, defender_unit):
+def deal_damage(gameID, attacker_unit, defender_unit):
     # Implement logic to calculate damage dealt by attacker to defender
     damage = attacker_unit['attackdamage']
     defender_unit['hp'] -= damage
+    if defender_unit['hp'] <= 0:
+        # kill unit
+        delete_unit(gameID, defender_unit)
+        print('unit ', defender_unit['_id'], ' deleted')
+        # change listener on frontend to unrender unit when it receives this
+        # and maybe notify user
+        emitData = {'unit_id': str(defender_unit['_id']), 'damage': str(damage), 'killed': True}
 
-    # Emit an event through the WebSocket to notify other clients
-    emitData = {'unit_id': str(defender_unit['_id']), 'damage': str(damage)}
+    else:
+        # Emit an event through the WebSocket to notify other clients
+        emitData = {'unit_id': str(defender_unit['_id']), 'damage': str(damage), 'killed': False}
     socket.emit('unitDamaged', emitData)
-
-def reduce_health(unit):
-    # Implement logic to reduce unit's health after being attacked
-    if unit['hp'] < 0:
-        unit['hp'] = 0
 
 def update_unit(unit):
     # Implement logic to update unit in the database after attack
@@ -266,7 +269,28 @@ def update_unit(unit):
     mycol = mydb['games']
 
     mycol.update_one({"units._id": unit['_id']}, {"$set": {"units.$": unit}})
+
     client.close()
+
+def delete_unit(gameID, unit):
+    client = pymongo.MongoClient(CONNECTION_STRING)
+    mydb = client['society']
+    mycol = mydb['games']
+
+    try:
+        # Convert the string representations of ObjectId back to ObjectId
+        gameID = ObjectId(gameID)
+        unit_id = ObjectId(unit['_id'])
+        
+        # Update the document to remove the specified unit
+        result = mycol.update_one({"_id": gameID}, {"$pull": {"units": {"_id": unit_id}}})
+        
+        if result.modified_count == 1:
+            print("Unit deleted successfully from the document.")
+        else:
+            print("Document or unit with the specified _id not found.")
+    except Exception as e:
+        print("An error occurred:", e)
 
 
 def unit_match(f):
