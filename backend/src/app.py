@@ -555,7 +555,7 @@ def create_game():
     response = flask.jsonify(game)
 
 
-    scheduler.add_job(func=newturn, args=[new_game['_id']], trigger="interval", seconds=1, name=str(new_game['_id']))
+    scheduler.add_job(func=newturn, args=[new_game['_id']], trigger="interval", seconds=30, name=str(new_game['_id']))
     
     return response
 
@@ -825,6 +825,8 @@ def newturn(gameID):
     print("Next run time:", nextturn.next_run_time)
 
     isoturntime = json.dumps(nextturn.next_run_time.isoformat())
+
+    # this sends the current turn, and the time of the next turn
 
     emitData = {'turn': turn, 'time': isoturntime}
     socket.emit('nextturn', emitData)

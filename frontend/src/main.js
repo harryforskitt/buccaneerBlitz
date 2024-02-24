@@ -12,6 +12,8 @@ var JWT = localStorage.getItem('JWT');
 var gameID = localStorage.getItem('game')
 console.log('game value from local Storage: ', gameID);
 
+var nextTurnTime;
+
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
   75,
@@ -77,17 +79,51 @@ socket.on('nextturn', function(data){
   htmlContent += '<ul>';
   
   // Iterate over the properties to display
-for (let property in data) {
-  // Check if the property exists in the selected unit object
-  htmlContent += '<li><strong>' + property + ':</strong> ' + data[property] + '</li>';
-}
+  htmlContent += '<li><strong>' + 'turn' + ':</strong> ' + data['turn'] + '</li>';
+
 
   htmlContent += '</ul>';
 
   // Update the content of the test div
-  document.getElementById('turninfo').innerHTML = htmlContent;
+  document.getElementById('turn').innerHTML = htmlContent;
+
+  const dateString = data['time'].split('.')[0].split('"')[1];
+  console.log("Date string:", dateString);
+  console.log("typeof date string:", typeof dateString);
+
+  nextTurnTime = new Date(dateString);
+
+  console.log("typeof nextTurnTime:", typeof nextTurnTime);
+  console.log("nextTurnTime:", nextTurnTime);
+  // Update the turn timer every second
+  setInterval(updateTurnTimer, 1000);
 
 });
+
+function updateTurnTimer() {
+  // Current time
+  const now = new Date().getTime();
+
+  console.log('typeof targetTime: ', typeof nextTurnTime);
+  console.log('targetTime: ', nextTurnTime);
+
+  // Difference between current time and target time in seconds
+  const differenceInSeconds = Math.floor((nextTurnTime - now) / 1000);
+
+  console.log('differentInSeconds: ', differenceInSeconds)
+
+  let htmlContent = '';
+  htmlContent += '<ul>';
+  
+  // Iterate over the properties to display
+  htmlContent += '<li><strong>' + 'Time until next turn' + ':</strong> ' + differenceInSeconds + '</li>';
+
+
+  htmlContent += '</ul>';
+
+  // Update the content of the test div
+  document.getElementById('turnTimer').innerHTML = htmlContent;
+};
 
 
 // Function to update the health of a unit in the frontend
