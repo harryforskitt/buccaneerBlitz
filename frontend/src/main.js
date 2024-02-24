@@ -56,9 +56,15 @@ socket.on('message', function(msg){
 // Listen for the 'unitDamaged' event from the server
 socket.on('unitDamaged', function(data){
   console.log('Unit Damaged:', JSON.stringify(data));
-  console.log('data.unit_id:', data.unit_id);
-  // Update the health of the unit in the frontend
-  updateUnitHealth(data.unit_id, data.damage);
+  if (data.killed == true){
+    var unit = scene.getObjectByProperty('_id', data.unit_id);
+    unrenderUnit(unit)
+  }
+  else{
+    // Update the health of the unit in the frontend
+    updateUnitHealth(data.unit_id, data.damage);
+  };
+  
 });
 
 // Function to update the health of a unit in the frontend
@@ -149,7 +155,7 @@ const moveUnit = async (unitID, tile) => {
     "unitID": unitID,
     "tile": tile
   };
-  console.log('gameID in moveUnit function: ', gameID)
+  // console.log('gameID in moveUnit function: ', gameID)
   const response = await fetch('http://127.0.0.1:5000/moveUnit',{
     method: "POST",
     headers: {
@@ -288,7 +294,7 @@ function getMoves(unit, range) {
   //console.log(c);
 
   let moves = [];
-  console.log('tilesNumber: ', tilesNumber);
+  // console.log('tilesNumber: ', tilesNumber);
   for (let i = 0; i < tilesNumber; i++) {
     var testa = tiles[i].a;
     var testb = tiles[i].b;
@@ -309,7 +315,7 @@ function getMoves(unit, range) {
     }
   }
   //console.log('moves:');
-  console.log('moves', moves);
+  // console.log('moves', moves);
   return moves;
 }
 
@@ -409,23 +415,23 @@ function unhighlight(tiles) {
   //You have to calculate the original length of the tiles array before the loop, becasue the splicing changes the indexes and makes it skip every other element
   length = tiles.length;
   for (let i = 0; i < length; i++) {
-    console.log('tiles in unhighlight: ', tiles);
-    console.log('tiles in highlighted: ', highlighted);
+    // console.log('tiles in unhighlight: ', tiles);
+    // console.log('tiles in highlighted: ', highlighted);
     var target = scene.getObjectByProperty('_id', tiles[0]);
     //console.log('target: ');
     //console.log(target);
-    console.log('target: ', target);
+    // console.log('target: ', target);
     target.material.color.setHex("0x" + target.startColor);
     //var tilesI = tiles[i];
     //console.log('tiles[i] :' + tiles[0]);
     //console.log('highlighted:');
     //console.log(highlighted);
     var toRemove = highlighted.indexOf(tiles[0]);
-    console.log('index to remove from highlighted: ', toRemove);
+    // console.log('index to remove from highlighted: ', toRemove);
     //console.log('to remove: ' + toRemove);
     highlighted.splice(toRemove, 1);
   }
-  console.log('highlighted after unhighlighting: ', highlighted);
+  // console.log('highlighted after unhighlighting: ', highlighted);
   //highlighted = [];
   //console.log('unhighlight highlighted: ' + highlighted);
 }
@@ -442,7 +448,7 @@ const onMouseClick = (event) => {
 
   //console.log('highlighted before clearing:');
   //console.log(highlighted);
-  console.log('highlighted: ', highlighted);
+  // console.log('highlighted: ', highlighted);
   if (highlighted.length > 0){
     unhighlight(highlighted);
   };
@@ -453,7 +459,7 @@ const onMouseClick = (event) => {
     selected = intersects[0].object;
     console.log("Selected: ", selected)
     let toHighlight = [selected._id];
-    console.log('toHighlight: ', toHighlight);
+    // console.log('toHighlight: ', toHighlight);
 
     //change this to check that the type of the object is a unit
     // console.log('selected.objectType: ', selected.objectType);
@@ -471,7 +477,7 @@ const onMouseClick = (event) => {
       // console.log('selected in onMouseClick: ', selected);
 
       let moveTiles = getMoves(selected, 2);
-      console.log('move tiles: ', moveTiles);
+      // console.log('move tiles: ', moveTiles);
       highlight(moveTiles, 0x00ffff);
       let unitTile = getMoves(selected, 0);
       //console.log('unitTile');
@@ -720,19 +726,19 @@ window.addEventListener("keydown", onKeyDown);
 
 function onKeyDown(evt){
   if (evt.keyCode == "38"){
-    console.log('up arrow press detected');
+    // console.log('up arrow press detected');
     camera.translateY( 10 );
   };
   if (evt.keyCode == "40"){
-    console.log('down arrow press detected');
+    // console.log('down arrow press detected');
     camera.translateY( - 10 );
   };
   if (evt.keyCode == "37"){
-    console.log('down arrow press detected');
+    // console.log('down arrow press detected');
     camera.translateX( - 10 );
   };
   if (evt.keyCode == "39"){
-    console.log('down arrow press detected');
+    // console.log('down arrow press detected');
     camera.translateX( 10 );
   };
   
