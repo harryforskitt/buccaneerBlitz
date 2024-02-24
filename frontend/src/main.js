@@ -129,25 +129,25 @@ const getJWT = async (username, password) => {
 //   return JWT
 // };
 
-document.getElementById("moveUnit").onclick = async() => {
-  console.log('unit to move: ', units[0]);
-  const unitID = units[0]['_id'];
-  console.log('unitID to move: ', unitID);
-  const tile = "10";
-  const response = moveUnit(unitID, tile)
-  .then((response) => {
-    console.log('response in onclick: ', response);
-    if (response === 200) {
+// document.getElementById("moveUnit").onclick = async() => {
+//   console.log('unit to move: ', units[0]);
+//   const unitID = units[0]['_id'];
+//   console.log('unitID to move: ', unitID);
+//   const tile = "10";
+//   const response = moveUnit(unitID, tile)
+//   .then((response) => {
+//     console.log('response in onclick: ', response);
+//     if (response === 200) {
 
-    unrenderUnit(units[0]);
-    //This deletes everythign and re-renders the game (very inneficient but easier for now)
-    // scene.remove.apply(scene, scene.children);
-    // renderGame();
-  };
-  });
+//     unrenderUnit(units[0]);
+//     //This deletes everythign and re-renders the game (very inneficient but easier for now)
+//     // scene.remove.apply(scene, scene.children);
+//     // renderGame();
+//   };
+//   });
   
-  return response;
-};
+//   return response;
+// };
 
 const moveUnit = async (unitID, tile) => {
   var status
@@ -250,9 +250,9 @@ overlay.onmouseleave = function () {
   // console.log("overlaid: " + overlaid);
 };
 
-document.getElementById("createCity").onclick = function () {
-  createCity(selected.a, selected.b, selected.c, "city");
-};
+// document.getElementById("createCity").onclick = function () {
+//   createCity(selected.a, selected.b, selected.c, "city");
+// };
 
 function createCity(a, b, c, name) {
   const tile = scene.getObjectById(getTile(a, b, c));
