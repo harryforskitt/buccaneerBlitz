@@ -826,7 +826,7 @@ def newturn(gameID):
 
     isoturntime = json.dumps(nextturn.next_run_time.isoformat())
 
-    emitData = {'time': isoturntime}
+    emitData = {'turn': turn, 'time': isoturntime}
     socket.emit('nextturn', emitData)
 
 if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':

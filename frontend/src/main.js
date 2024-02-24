@@ -67,10 +67,28 @@ socket.on('unitDamaged', function(data){
   
 });
 
-// Listen for the 'unitDamaged' event from the server
+
 socket.on('nextturn', function(data){
-  console.log('nextturn:', JSON.stringify(data));
+  console.log("typeof data: ", typeof data);
+  var stringifieddata = JSON.stringify(data)
+  console.log("typeof stringifieddata: ", typeof stringifieddata);
+  console.log('nextturn:', stringifieddata);
+  let htmlContent = '';
+  htmlContent += '<ul>';
+  
+  // Iterate over the properties to display
+for (let property in data) {
+  // Check if the property exists in the selected unit object
+  htmlContent += '<li><strong>' + property + ':</strong> ' + data[property] + '</li>';
+}
+
+  htmlContent += '</ul>';
+
+  // Update the content of the test div
+  document.getElementById('turninfo').innerHTML = htmlContent;
+
 });
+
 
 // Function to update the health of a unit in the frontend
 function updateUnitHealth(unitID, damage) {
