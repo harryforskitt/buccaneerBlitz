@@ -49,6 +49,11 @@ app.config['SECRET_KEY'] = 'thisisthesecretkey'
 # # Register the add_cors_headers function to be called after each request
 # app.after_request(add_cors_headers)
 
+# Custom serialization function for datetime objects
+def serialize_datetime(obj):
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+
 socket = SocketIO(app, cors_allowed_origins="*")
 somelist = ["apple", "peas", "juice", "orange"]
 f = 0
@@ -550,7 +555,7 @@ def create_game():
     response = flask.jsonify(game)
 
 
-    scheduler.add_job(func=newturn, args=[new_game['_id']], trigger="interval", seconds=1)
+    scheduler.add_job(func=newturn, args=[new_game['_id']], trigger="interval", seconds=1, name=str(new_game['_id']))
     
     return response
 
@@ -804,6 +809,25 @@ def newturn(gameID):
     mycol.update_many({}, { "$set": {"units.$[].usedattacks": 0}})
     # mycol.update_many({}, { "$set": {"units.$[].movepoints": 2}})
     # mycol.update_many({}, { "$set": {"units.$.usedmovepoints": ObjectId(tile)}})
+    
+    # Get the list of scheduled jobs
+    scheduled_jobs = scheduler.get_jobs()
+
+    print("scheduled jobs: ", scheduled_jobs)
+
+    # Iterate over the list of scheduled jobs and print their details
+    for job in scheduled_jobs:
+        if job.name == str(gameID):
+            nextturn = job
+            break
+
+    print("Job:", nextturn)
+    print("Next run time:", nextturn.next_run_time)
+
+    isoturntime = json.dumps(nextturn.next_run_time.isoformat())
+
+    emitData = {'time': isoturntime}
+    socket.emit('nextturn', emitData)
 
 if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
     scheduler = BackgroundScheduler(job_defaults={'max_instances': 999999})

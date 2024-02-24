@@ -67,6 +67,11 @@ socket.on('unitDamaged', function(data){
   
 });
 
+// Listen for the 'unitDamaged' event from the server
+socket.on('nextturn', function(data){
+  console.log('nextturn:', JSON.stringify(data));
+});
+
 // Function to update the health of a unit in the frontend
 function updateUnitHealth(unitID, damage) {
   console.log('unitID', unitID)
