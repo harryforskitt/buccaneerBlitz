@@ -12,7 +12,52 @@ var JWT = localStorage.getItem('JWT');
 var gameID = localStorage.getItem('game')
 console.log('game value from local Storage: ', gameID);
 
-var nextTurnTime;
+let nextTurnTime;
+
+const turnRequest = async () => {
+  const response = await fetch('http://127.0.0.1:5000/getTurn',{
+    method: "GET",
+    headers: {
+      "gameID" : gameID,
+      "Content-Type": "application/json",
+      "authorization": JWT
+    }
+  });
+  const myJson = await response.json();
+  // console.log("myJson: ", myJson);
+  // console.log(myJson[0]);
+  //console.log(myJson['map']);
+  console.log('getTurn response:', myJson);
+  
+  return(myJson);
+  // do something with myJson
+};
+
+(async () => {
+  const turnResponse = await turnRequest();
+  console.log("typeof data: ", typeof turnResponse);
+  var stringifieddata = JSON.stringify(turnResponse)
+  console.log("typeof stringifieddata: ", typeof stringifieddata);
+  console.log('nextturn:', stringifieddata);
+  let htmlContent = '';
+  htmlContent += '<ul>';
+  
+  // Iterate over the properties to display
+  htmlContent += '<li><strong>' + 'turn' + ':</strong> ' + turnResponse['turn'] + '</li>';
+
+
+  htmlContent += '</ul>';
+  // Update the content of the test div
+  document.getElementById('turn').innerHTML = htmlContent;
+  console.log('nextTurnTime: ', nextTurnTime);
+  const dateString = turnResponse['time'].split('.')[0].split('"')[1];
+  console.log("Date string:", dateString);
+  console.log("typeof date string:", typeof dateString);
+
+  nextTurnTime = new Date(dateString);
+  setInterval(updateTurnTimer, 1000);
+})();
+
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -96,7 +141,7 @@ socket.on('nextturn', function(data){
   console.log("typeof nextTurnTime:", typeof nextTurnTime);
   console.log("nextTurnTime:", nextTurnTime);
   // Update the turn timer every second
-  setInterval(updateTurnTimer, 1000);
+  // setInterval(updateTurnTimer, 1000);
 
 });
 
@@ -250,9 +295,30 @@ const getGame = async () => {
   // console.log("myJson: ", myJson);
   // console.log(myJson[0]);
   //console.log(myJson['map']);
+  console.log(myJson)
   return(myJson);
   // do something with myJson
 };
+
+const getTurn = async () => {
+  const response = await fetch('http://127.0.0.1:5000/getTurn',{
+    method: "GET",
+    headers: {
+      "gameID" : gameID,
+      "Content-Type": "application/json",
+      "authorization": JWT
+    }
+  });
+  const myJson = await response.json();
+  // console.log("myJson: ", myJson);
+  // console.log(myJson[0]);
+  //console.log(myJson['map']);
+  console.log(myJson)
+  return(myJson);
+  // do something with myJson
+};
+
+const gotTurn = getTurn();
 
 // console.log(getGame());
 

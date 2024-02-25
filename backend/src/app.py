@@ -809,7 +809,30 @@ def newturn(gameID):
     mycol.update_many({}, { "$set": {"units.$[].usedattacks": 0}})
     # mycol.update_many({}, { "$set": {"units.$[].movepoints": 2}})
     # mycol.update_many({}, { "$set": {"units.$.usedmovepoints": ObjectId(tile)}})
+    with app.app_context():
+        socket.emit('nextturn', getTurn(gameID))
     
+@app.route('/getTurn', methods=['GET'])
+@cross_origin()
+@token_required
+@user_match
+def getTurnRequest():
+    
+    return(getTurn(request.headers.get('gameID')))
+
+def getTurn(gameID):
+
+    print('/getTurn called')
+
+    client = pymongo.MongoClient(CONNECTION_STRING)
+    mydb = client['society']
+    mycol = mydb['games']
+
+    turn = mycol.find_one({"_id": ObjectId(gameID)}, {'turn': 1})
+    turn = turn['turn']
+
+    print('game :', gameID, 'turn ', turn)
+
     # Get the list of scheduled jobs
     scheduled_jobs = scheduler.get_jobs()
 
@@ -829,7 +852,8 @@ def newturn(gameID):
     # this sends the current turn, and the time of the next turn
 
     emitData = {'turn': turn, 'time': isoturntime}
-    socket.emit('nextturn', emitData)
+
+    return emitData
 
 if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
     scheduler = BackgroundScheduler(job_defaults={'max_instances': 999999})
