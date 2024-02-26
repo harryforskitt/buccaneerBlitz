@@ -153,7 +153,11 @@ function updateTurnTimer() {
   console.log('targetTime: ', nextTurnTime);
 
   // Difference between current time and target time in seconds
-  const differenceInSeconds = Math.floor((nextTurnTime - now) / 1000);
+  var differenceInSeconds = Math.floor((nextTurnTime - now) / 1000);
+
+  if (differenceInSeconds <= 0){
+    differenceInSeconds = 'Processing turn...'
+  };
 
   console.log('differentInSeconds: ', differenceInSeconds)
 
