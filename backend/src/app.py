@@ -6,7 +6,7 @@
 
 #this looks funny but it makes sure vscode recognises both flask and Flask
 import flask
-from flask import Flask, request, jsonify, make_response
+from flask import Flask, request, jsonify, make_response, render_template
 from flask_cors import CORS, cross_origin
 import json
 import jwt
@@ -433,15 +433,16 @@ def getGame():
     return games
 
 @app.route('/', methods=['GET'])
-def yourMethod():
-    # username = request.get_json().get('username')
-    # password = request.get_json().get('password')
-    # print(username)
-    # print(password)
-    response = flask.jsonify({'some': 'data5'})
-    #Allow cross-origin requests
-    #response.headers.add('Access-Control-Allow-Origin', '*')
-    return response
+def login_page():
+    return render_template('index.html')
+
+@app.route('/gamesList', methods=['GET'])
+def gameslist_page():
+    return render_template('games.html')
+
+@app.route('/game', methods=['GET'])
+def game_page():
+    return render_template('game.html')
 
 @app.route('/unprotected')
 def unprotected():
