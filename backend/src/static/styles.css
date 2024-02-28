@@ -9,3 +9,25 @@
     position: absolute;
     /*z-index:-1;*/
 }
+
+#players {
+    border-collapse: collapse;
+    padding: 20px; /* Adjust the value as needed */
+}
+
+#players table {
+    border-collapse: collapse;
+    border-spacing: 20px;
+    border: 1px solid black;
+}
+
+#players td {
+    border-collapse: collapse;
+    padding: 10px; /* Adjust the value as needed */
+    border: 1px solid black;
+}
+
+/* #players input[type="text"] {
+    border-collapse: collapse;
+    border: none;
+} */

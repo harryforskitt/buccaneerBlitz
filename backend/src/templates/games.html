@@ -4,20 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Games</title>
+    <link rel="stylesheet" href="{{ url_for('static',filename='styles.css') }}">
 </head>
 <body>
     <label for="gameName">Game Name:</label>
     <input type="text" id="gameName" name="gameName" value="newgame"><br>
-    <div id="players">
-        <label for="player1">Player 1:</label>
-        <input type="text" id="player1" name="player1" value="harry"><br>
-        <label for="player2">Player 2:</label>
-        <input type="text" id="player2" name="player2" value="a"><br>
-        <label for="player3">Player 3:</label>
-        <input type="text" id="player3" name="player3" value="b"><br>
-        <label for="player4">Player 4:</label>
-        <input type="text" id="player4" name="player4" value="c"><br>
-    </div>
+    <table id="players">
+        <tr>
+        <td>Player Name</td>
+        <td>Pirate</td>
+        <td>AI</td>
+        <td>Remove Player</td>
+        </tr>
+        <!-- <tr>
+            <td><input type="text" id="player1" name="player1" value="harry"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><button class="remove">Remove Player</button></td>
+        </tr>
+        <tr>
+            <td><input type="text" id="player2" name="player2" value="a"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><button class="remove">Remove Player</button></td>
+        </tr>
+        <tr>
+            <td><input type="text" id="player3" name="player3" value="b"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><button class="remove">Remove Player</button></td>
+        </tr>
+        <tr>
+            <td><input type="text" id="player4" name="player4" value="c"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><button class="remove">Remove Player</button></td>
+        </tr> -->
+    </table>
+    <button id="addPlayer">Add Player</button>
     <button id="createGame">Create New Game</button>
     <h2>Games:</h2>
     <ul id="gamesList"></ul>

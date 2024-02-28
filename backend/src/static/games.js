@@ -3,7 +3,65 @@ console.log(JWT);
 
 const gamesList = document.getElementById('gamesList');
 
-const listGames = async () => {
+const playersList = document.getElementById('players');
+
+function addPlayer(){
+
+  var player = document.createElement('tr');
+
+  var playerNametd = document.createElement('td');
+  var playerNameInput = document.createElement('input');
+  playerNameInput.className = 'playerName'
+  playerNametd.appendChild(playerNameInput);
+
+  var piratetd = document.createElement('td');
+  var pirateInput = document.createElement('input');
+  pirateInput.type = 'checkbox';
+  piratetd.appendChild(pirateInput);
+  
+  var AItd = document.createElement('td');
+  var AIInput = document.createElement('input');
+  AIInput.type = 'checkbox';
+  AItd.appendChild(AIInput);
+  
+  var removePlayertd = document.createElement('td');
+  var removePlayerbutton= document.createElement('button');
+  removePlayerbutton.className = 'remove';
+  removePlayerbutton.innerHTML = 'Remove Player';
+
+  removePlayerbutton.onclick = function(event){
+    console.log('remove button clicked');
+    var button = event.target;
+    var td = button.parentElement;
+    var tr = td.parentElement;
+    tr.remove();
+  };
+
+  removePlayertd.appendChild(removePlayerbutton);
+  
+  player.append(playerNametd, piratetd, AItd, removePlayertd);
+  playersList.appendChild(player);
+};
+
+for(let i = 0; i < 4; i++){
+  addPlayer();
+};
+
+
+document.getElementById("addPlayer").onclick = function(){
+  addPlayer();
+};
+
+
+// document.getElementsByClassName("remove").onclick = function(){
+//   console.log('remove button clicked');
+//   //get the table row that is the parent of the remove button, and remove this row
+//   // var td = event.target;
+//   // console.log('event target: ', td);
+// };
+
+
+const listGames = async() => {
     //const myJson = JSON.stringify(tiles);
     try{
       const response = await fetch('http://127.0.0.1:5000/listGames',{
@@ -69,7 +127,7 @@ const createGame = async (name, players) => {
 
 document.getElementById("createGame").onclick = async() => {
   const players = []
-  const playersInput = document.getElementById("players").getElementsByTagName('input');
+  const playersInput = document.getElementById("players").getElementsByClassName('playerName');
   const name = document.getElementById("gameName").value;
   for (let i = 0; i < playersInput.length; i++) {
     console.log('player ', i)
