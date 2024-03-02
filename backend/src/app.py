@@ -36,7 +36,7 @@ def parse_json(data):
 app = Flask(__name__)
 CORS(app, origins='*')
 app.config['CORS_HEADERS'] = 'Content-Type'
-app.config['SECRET_KEY'] = 'thisisthesecretkey'
+app.config['SECRET_KEY'] = os.environ.get("FLASK_SECRET_KEY")
 
 # # Define a function to add CORS headers to every response
 # def add_cors_headers(response):
