@@ -74,7 +74,7 @@ def token_required(f):
 
         try:
             print('trying to decode')
-            data = jwt.decode(token, 'thisisthesecretkey', algorithms=["HS256"])
+            data = jwt.decode(token, str(app.config['SECRET_KEY']), algorithms=["HS256"])
         except:
             return jsonify({'message' : 'Token is invalid'}), 401
 
@@ -355,7 +355,7 @@ def unit_match(f):
 
 #This function gets the data from the JWT
 def getTokenData(token):
-    data = jwt.decode(token, 'thisisthesecretkey', algorithms=["HS256"])
+    data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
     return(data)
 
 @socket.on('connect')
