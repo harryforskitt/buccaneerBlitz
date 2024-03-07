@@ -1,11 +1,22 @@
 var JWT = '';
 
-document.getElementById("login").onclick = async() => {
+document.getElementById("login").onclick = async(event) => {
+  //prevent login popup
+  event.preventDefault();
+  console.log('login clicked')
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
     //Sets value of Global JWT variable
     JWT = await getJWT(username, password);
-    console.log('JWT from login button: ', JWT);
+    console.log('JWT: ', JWT);
+    // console.log('eval(JWT) ', eval(JWT));
+    if (JWT){
+      console.log('redirecting to gamesList');
+      window.location.href = "http://127.0.0.1:5000/gamesList";
+    }
+    else{
+      console.log('Login failed');
+    };
     return JWT
   };
 
@@ -25,6 +36,9 @@ document.getElementById("login").onclick = async() => {
     const JWT = (myJson.token);
     //console.log(JWT);
     localStorage.setItem('JWT', JWT);
+    console.log('JWT from getJWT: ', JWT);
+
+    //return false to prevent popup form
     return JWT
   };
 

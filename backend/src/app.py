@@ -464,7 +464,11 @@ def login():
     mydb = client['society']
     mycol = mydb['users']
 
-    storedPassword = mycol.find_one({"username": inputUsername}, {"password": 1})['password']
+    try:
+        storedPassword = mycol.find_one({"username": inputUsername}, {"password": 1})['password']
+    except:
+        # couldn't find user with that username
+        return jsonify({'message': 'Cannot find user with that name'}), 401
 
     client.close()
 
@@ -475,10 +479,11 @@ def login():
         #     if users[i].username == username:
         #         users[i].JWT = user
         #         break
+        print('token: ', token)
         return jsonify({'token' : token})
         
 
-    return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login Required"'})
+    return jsonify({'message': 'Could not login'}), 401
 
 # ADD APP ROUTE FOR sendGame POST
 @app.route('/post', methods=['POST'])
