@@ -148,10 +148,19 @@ socket.on('nextturn', function(data){
 
 function updateTurnTimer() {
   // Current time
-  const now = new Date().getTime();
+  const localTimeNow = new Date().getTime();
+  //convert to UTC to match the server
+  const localNow = new Date(); // Get the current date and time
+  const now = new Date(localNow.getUTCFullYear(), localNow.getUTCMonth(), localNow.getUTCDate(), localNow.getUTCHours(), localNow.getUTCMinutes(), localNow.getUTCSeconds()); // Convert it to UTC
+
+// console.log(now); // This will give you the current UTC time as a Date object
+
+  //this format is easier to display
+  // const currentTime = new Date();
 
   console.log('typeof targetTime: ', typeof nextTurnTime);
   console.log('targetTime: ', nextTurnTime);
+  console.log('current time: ', now.toString());
 
   // Difference between current time and target time in seconds
   var differenceInSeconds = Math.floor((nextTurnTime - now) / 1000);
@@ -160,7 +169,7 @@ function updateTurnTimer() {
     differenceInSeconds = 'Processing turn...'
   };
 
-  console.log('differentInSeconds: ', differenceInSeconds)
+  console.log('differenceInSeconds: ', differenceInSeconds)
 
   let htmlContent = '';
   htmlContent += '<ul>';
