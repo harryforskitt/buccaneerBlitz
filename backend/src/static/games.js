@@ -80,8 +80,24 @@ const listGames = async() => {
       // console.log("Success: ", result);
       // console.log('result length: ', result.length);
       gamesList.innerHTML = "";
+
+      
       
       for (let i = 0; i < result.length; i++) {
+        
+        const players = [];
+
+        for (let j = 0; j < result[i].players.length; j++){
+          console.log('result[i]: ', result[i]);
+          console.log('result[i].players: ', result[i].players);
+          // console.log('JSON.stringify(result[i].players): ', JSON.stringify(result[i].players));
+          console.log('result[i].players[j]: ', JSON.stringify(result[i].players[j]));
+          console.log("result[i].players[j]['name']: ", JSON.stringify(result[i].players[j]['name']));
+          players.push(result[i].players[j]['name'])
+        };
+
+        console.log('players: ', players);
+
         const li = document.createElement('li');
         // console.log(result[i].name);
         //const game = document.createTextNode(result[i].name);
@@ -95,7 +111,7 @@ const listGames = async() => {
           window.location.href = 'http://127.0.0.1:5000/game';
         };
         li.appendChild(button);
-        li.appendChild(document.createTextNode(result[i].name + ' id: ' + result[i]._id['$oid'] + ' players: ' + result[i].players));
+        li.appendChild(document.createTextNode(result[i].name + ' id: ' + result[i]._id['$oid'] + ' players: ' + players));
         gamesList.appendChild(li);
 
       }
