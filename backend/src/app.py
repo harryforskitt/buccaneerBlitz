@@ -64,16 +64,16 @@ CONNECTION_STRING = os.environ.get("COSMOS_CONNECTION_STRING")
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        print('verifying token')
+        # print('verifying token')
         print(request)
         token = request.headers.get('Authorization') #http://1237.0.0.1:500/route?token=ahglhajkghdajkslghsajklg
-        print('token: ' + str(token))
+        # print('token: ' + str(token))
 
         if not token:
             return jsonify({'message' : 'Token is missing!'}), 401
 
         try:
-            print('trying to decode')
+            # print('trying to decode')
             data = jwt.decode(token, str(app.config['SECRET_KEY']), algorithms=["HS256"])
         except:
             return jsonify({'message' : 'Token is invalid'}), 401
@@ -100,17 +100,25 @@ def user_match(f):
         print('gameID: ', gameID)
 
         playersQuery = list(parse_json(mycol.find({'_id': ObjectId(gameID)}, {"players": 1})))
+
+        playersInDB = [];
+        for i in range(0, len(playersQuery)):
+            print("playersQuery[0]: ", playersQuery[0])
+            print("playersQuery[0]['players'][i]['name']: ", playersQuery[0]['players'][i]['name'])
+            playersInDB.append(playersQuery[0]['players'][i]['name'])
+
+        print('playersInDB: ', playersInDB)
         
         client.close()
-        print('printing playersQuery')
-        print('players query: ', playersQuery)
-        # for i in playersQuery:
-        #     print("playersQuery[i]: ", playersQuery[i])
-        print('printed playersQuery')
+        print('printing playersInDB')
+        print('players query: ', playersInDB)
+        # for i in playersInDB:
+        #     print("playersInDB[i]: ", playersInDB[i])
+        print('printed playersInDB')
 
         players = []
-        if playersQuery:
-            players = playersQuery[0]['players']
+        if playersInDB:
+            players = playersInDB
         print(players)
 
         if username not in players:
@@ -301,7 +309,7 @@ def delete_unit(gameID, unit):
 def unit_match(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        print('verifying that user owns unit')
+        # print('verifying that user owns unit')
         json = request.get_json()
         unitID = json.get('unitID')
 
@@ -330,24 +338,24 @@ def unit_match(f):
         }}
         ])
         # index = mycol.aggregate({"$indexOfArray:": [["$units"], [ObjectId(unitID)]] })
-        print('found')
+        # print('found')
         for i in unitCursor:
-            print('i in unitCursor: ', i)
+            # print('i in unitCursor: ', i)
             units = i['units']
             unit = units[0]
             unitUser = units[0]['player']
             break
-        print('unit: ', unit)
+        # print('unit: ', unit)
             
         client.close()
 
         if unitUser != username:
             message = str('user ' + str(username) + ' does not own unit ' + str(unitID))
-            print(message)
+            # print(message)
             return jsonify({'message' : message}), 401
         
         message = str('user ' + str(username) + ' does own unit ' + str(unitUser))
-        print(message)
+        # print(message)
 
         return f(*args, **kwargs)
     
@@ -409,12 +417,12 @@ def getGame():
     token = request.headers.get('Authorization')
     tokenData = getTokenData(token)
     username = (tokenData['user'])
-    print("username: ", username)
+    # print("username: ", username)
     gameID = request.headers.get('gameID')
 
-    print('getting game')
+    # print('getting game')
     
-    print('gameID: ', gameID)
+    # print('gameID: ', gameID)
 
     client = pymongo.MongoClient(CONNECTION_STRING)
 
@@ -528,19 +536,19 @@ def create_game():
         k += 7.5
 
     startPositions = random.sample(range(0, len(tiles)), len(players))
-    print("start positions: ", startPositions)
+    # print("start positions: ", startPositions)
 
     for i in range(0, len(startPositions)):
-        print('startPositions[i] :', startPositions[i])
-        print('tiles: ', tiles)
+        # print('startPositions[i] :', startPositions[i])
+        # print('tiles: ', tiles)
         # startPositionString = str(startPositions[i])
-        print('tile: ', tiles[startPositions[i]])
+        # print('tile: ', tiles[startPositions[i]])
         startPosition_id = tiles[startPositions[i]]['_id']
-        unit = createUnit(startPosition_id, players[i], 'scout', 2, 100, 2, 20, 1)
+        unit = createUnit(startPosition_id, players[i]['name'], 'scout', 2, 100, 2, 20, 1)
         # units[ObjectId()] = unit
         units.append(unit)
 
-    print('units: ', units)
+    # print('units: ', units)
 
     # print('tiles: ', tiles)
 
@@ -556,7 +564,7 @@ def create_game():
     mycol.insert_one(new_game)
 
     client.close()
-    print('new game units: ', new_game['units'])
+    # print('new game units: ', new_game['units'])
 
     response = flask.jsonify(game)
 
@@ -588,6 +596,7 @@ def createUnit(tile, player, type, movepoints, hp, attackdistance, attackdamage,
 @user_match
 @unit_match
 def moveUnit():
+    print('moving unit')
     print(request)
     json = request.get_json()
     print('json received: ', json)
@@ -807,7 +816,7 @@ def newturn(gameID):
     turn = mycol.find_one({"_id": ObjectId(gameID)}, {'turn': 1})
     turn = turn['turn']
     turn = int(turn) + 1
-    print('game :', gameID, 'turn ', turn)
+    # print('game :', gameID, 'turn ', turn)
 
     mycol.update_one({"_id": ObjectId(gameID)}, { "$set": {"turn": turn}})
     #update all units used movement to 0 - not working yet
@@ -828,7 +837,7 @@ def getTurnRequest():
 
 def getTurn(gameID):
 
-    print('/getTurn called')
+    # print('/getTurn called')
 
     client = pymongo.MongoClient(CONNECTION_STRING)
     mydb = client['society']
@@ -842,7 +851,7 @@ def getTurn(gameID):
     # Get the list of scheduled jobs
     scheduled_jobs = scheduler.get_jobs()
 
-    print("scheduled jobs: ", scheduled_jobs)
+    # print("scheduled jobs: ", scheduled_jobs)
 
     # Iterate over the list of scheduled jobs and print their details
     for job in scheduled_jobs:
@@ -850,8 +859,8 @@ def getTurn(gameID):
             nextturn = job
             break
 
-    print("Job:", nextturn)
-    print("Next run time:", nextturn.next_run_time)
+    # print("Job:", nextturn)
+    # print("Next run time:", nextturn.next_run_time)
 
     isoturntime = json.dumps(nextturn.next_run_time.isoformat())
 

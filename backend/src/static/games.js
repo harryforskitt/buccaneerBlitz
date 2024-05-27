@@ -11,22 +11,24 @@ function addPlayer(){
 
   var playerNametd = document.createElement('td');
   var playerNameInput = document.createElement('input');
-  playerNameInput.className = 'playerName'
+  playerNameInput.classList = 'playerName';
   playerNametd.appendChild(playerNameInput);
 
   var piratetd = document.createElement('td');
   var pirateInput = document.createElement('input');
   pirateInput.type = 'checkbox';
+  pirateInput.classList = 'isPirate';
   piratetd.appendChild(pirateInput);
   
   var AItd = document.createElement('td');
   var AIInput = document.createElement('input');
   AIInput.type = 'checkbox';
+  AIInput.classList = 'isAI';
   AItd.appendChild(AIInput);
   
   var removePlayertd = document.createElement('td');
   var removePlayerbutton= document.createElement('button');
-  removePlayerbutton.className = 'remove';
+  removePlayerbutton.classList = 'remove';
   removePlayerbutton.innerHTML = 'Remove Player';
 
   removePlayerbutton.onclick = function(event){
@@ -127,12 +129,28 @@ const createGame = async (name, players) => {
 
 document.getElementById("createGame").onclick = async() => {
   const players = []
-  const playersInput = document.getElementById("players").getElementsByClassName('playerName');
+  // const playersElement = document.getElementById("players").getElementsByClassName('playerName');
+  const playersElement = document.getElementById("players");
+  console.log("players element: ", playersElement);
+  const playerNames = playersElement.getElementsByClassName('playerName');
   const name = document.getElementById("gameName").value;
-  for (let i = 0; i < playersInput.length; i++) {
-    console.log('player ', i)
-    console.log(playersInput[i].value);
-    players.push(playersInput[i].value);
+  for (let i = 0; i < playerNames.length; i++) {
+    const player = {};
+    player.name = playerNames[i].value;
+
+    var playerIsPirateCheckbox = playersElement.getElementsByClassName('isPirate')[i];
+    var playerIsPirate = playerIsPirateCheckbox.checked;
+    console.log("playerIsPirate: ", playerIsPirate);
+    player.isPirate = playerIsPirate;
+
+    var playerIsAICheckbox = playersElement.getElementsByClassName('isAI')[i];
+    var playerIsAI = playerIsAICheckbox.checked;
+    player.isAI = playerIsAI;
+
+    // console.log("playerIsPirateCheckbox: ", playerIsPirateCheckbox);
+    console.log('player ', i);
+    console.log(playerNames[i].value);
+    players.push(player);
   };
   //console.log(players);
   
