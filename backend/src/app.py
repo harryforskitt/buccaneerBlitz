@@ -813,12 +813,87 @@ def newturn(gameID):
     mydb = client['society']
     mycol = mydb['games']
 
+    # get units where isAI == true
+
+    # Define the aggregation pipeline
+    pipeline = [
+        {
+            "$match": {
+                "_id": gameID
+            }
+        },
+        {
+            "$project": {
+                "AIplayers": {
+                    "$filter": {
+                        "input": "$players",
+                        "as": "player",
+                        "cond": {
+                            "$eq": ["$$player.isAI", True]
+                        }
+                    }
+                },
+                "units": 1
+            }
+        },
+        {
+            "$unwind": "$units"
+        },
+        {
+            "$project": {
+                "units": 1,
+                "AIplayers": {
+                    "$filter": {
+                        "input": "$AIplayers",
+                        "as": "aiplayer",
+                        "cond": {
+                            "$eq": ["$$aiplayer.name", "$units.player"]
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "$match": {
+                "AIplayers": { "$ne": [] }
+            }
+        },
+        {
+            "$project": {
+                "_id": 0,
+                "unit": "$units"
+            }
+        }
+    ]
+
+    # Execute the aggregation pipeline
+    results = mycol.aggregate(pipeline)
+
+    # Print the result
+    for result in results:
+        print(result)
+
+    # for each of those units, get it's position
+    # get it's possible moves
+    # pick a random one - should make this more intentional later
+    # should make it attack at some point
+
+    # get list of AI players
+    # for each AI player, have some chance of creating traders (probably at edge of map for now, but could be at cities in future)
+    # if the random chance succeeds, pick a random (ideally unoccupied) tile on the edge of the map and create a trader unit (maybe give it a destination tile on another map edge)
+
+    # check whether any traders are already at their endpoint, and if so delete them (or send them the other way?? - probably not for now, but could be good when they're going between cities)
+    # at some point, get all units of type trader and move them towards their endpoint
+
+
     turn = mycol.find_one({"_id": ObjectId(gameID)}, {'turn': 1})
     turn = turn['turn']
     turn = int(turn) + 1
     # print('game :', gameID, 'turn ', turn)
 
     mycol.update_one({"_id": ObjectId(gameID)}, { "$set": {"turn": turn}})
+
+
     #update all units used movement to 0 - not working yet
     mycol.update_many({}, { "$set": {"units.$[].usedmovepoints": 0}})
     mycol.update_many({}, { "$set": {"units.$[].usedattacks": 0}})

@@ -7,3 +7,4 @@ variables.env
 frontend/node_modules/
 backend/src/__pycache__
 notes.txt
+test
